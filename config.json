@@ -1,0 +1,23 @@
+{
+    "mesh_filename": "EITmesh.fem",
+    "optimize_node_num": false,
+    "shuffle_element": false,
+    "electrode_centers": [
+        [47,0],[47,23.5],[47,47],
+        [23.5,47],[0,47],[-23.5,47],[-47,47],
+        [-47,23.5],[-47,0],[-47,-23.5],[-47,-47],
+        [-23.5,-47],[0,-47],[23.5,-47],[47,-47],
+        [47,-23.5]
+    ],
+    "electrode_radius": 3,
+    "reconstruction_mode": "n",
+    "capacitance_change_for_JAC": 4e-4,
+    "overall_origin_capacitance": 0,
+    "detection_bound": 45,
+    "JAC_filename" : "fwd00000_unshuffled_RTri_mesh",
+    "Is_first_JAC_calculation": true,
+    "calc_from": 0,
+    "folder_name": "Mesh_50_50", 
+    "calc_end": 16,
+    "regularization_coeff": 203
+}
