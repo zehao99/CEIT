@@ -20,11 +20,11 @@ if __name__ == "__main__":
     elem = mesh_obj['element']
     x, y = points[:, 0], points[:, 1]
     """ 1. problem setup """
-    fwd = EFEM(mesh_obj,electrode_num ,electrode_centers, radius, perm = 1/100000)
+    fwd = EFEM(mesh_obj,electrode_num ,electrode_centers, radius, perm = 1/200000)
     #fwd.elem_capacitance = fwd.elem_capacitance + 1e-10
     #fwd.reset_capacitance(1e-13)
     #_, _, electrode_potential_orig = fwd.calculation(0)
-    fwd.change_add_capa_geometry([-0.02,-0.01],0.01, 1e-9, 'square')
+    fwd.change_add_capa_geometry([-0.02,-0.01],0.01, 1e-7, 'square')
     #fwd.change_capacitance_elementwise([2500],[1e-5])
     node_u, elem_u, electrode_potential = fwd.calculation(2)
 
