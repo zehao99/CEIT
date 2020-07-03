@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     """ 1. problem setup """
     fwd = EFEM(mesh_obj,electrode_num ,electrode_centers, radius, perm = 1/200000)
-    for i in range(5000):
+    for i in range(100000):
         num_of_shape = np.random.rand() * 3
         if num_of_shape < 1:
             x1 = (-40 + 80 * np.random.rand()) / 1000
@@ -107,4 +107,3 @@ if __name__ == "__main__":
             fwd.change_add_capa_geometry([x3,y3], radius3, -value3, shape3)
         if i % 10 == 0:
             print("iteration to: " , i)
-
