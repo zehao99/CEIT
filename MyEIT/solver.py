@@ -19,7 +19,7 @@ class solver(object):
         self.elem = self.mesh_obj["element"]
         self.point_x = self.nodes[:, 0]
         self.point_y = self.nodes[:, 1]
-        self.JAC_mat = self.read_JAC()
+        self.read_JAC()
         self.elem_param = np.zeros((np.shape(self.elem)[0],9))
         self.initialize()
         self.calc_detection_elements()
@@ -91,6 +91,10 @@ class solver(object):
         self.inv_mat = np.load(self.config["folder_name"] + '/inv_mat.npy')
 
     def solve(self, delta_V):
+        """
+        Get the capacitance map according to delta_V Change
+        """
+
         capacitance_predict = np.dot(self.inv_mat, delta_V)
         return capacitance_predict
 
@@ -103,3 +107,29 @@ class solver(object):
         Q = np.eye(J.shape[1])
         self.inv_mat = np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q ), J.T)
         np.save(self.config["folder_name"] + '/inv_mat.npy', self.inv_mat)
+
+    def adaptive_solver(self, delta_V):
+        capacitance = self.solve(delta_V)
+        idx = np.where(capacitance == np.max(capacitance))
+        x = self.elem_param[idx][7]
+        y = self.elem_param[idx][8]
+        #Pick zone
+    
+    def delete_outside_detect(self, list_c):
+        '''
+        Input a all-element-wise list 
+        Return elements remained in detection domain
+        '''
+        list_c = np.array(list_c)
+        if list_c.ndim > 1:
+            new_list_c = np.zeros((self.detection_index.shape[0], list_c.shape[1]))
+            for i,j in enumerate(self.detection_index):
+                new_list_c[i] = list_c[j]
+            return new_list_c
+        elif list_c.ndim == 1:
+            new_list_c = np.zeros((self.detection_index.shape[0]))
+            for i,j in enumerate(self.detection_index):
+                new_list_c[i] = list_c[j]
+            return new_list_c
+        else:
+            raise Exception("Transfer Shape Not Correct")

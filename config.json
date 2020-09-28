@@ -11,13 +11,12 @@
     ],
     "electrode_radius": 3,
     "reconstruction_mode": "n",
-    "capacitance_change_for_JAC": 4e-4,
+    "capacitance_change_for_JAC": 1e-3,
     "overall_origin_capacitance": 0,
     "detection_bound": 45,
-    "JAC_filename" : "fwd00000_unshuffled_RTri_mesh",
     "Is_first_JAC_calculation": true,
-    "calc_from": 0,
     "folder_name": "Mesh_50_50", 
+    "calc_from": 0,
     "calc_end": 16,
-    "regularization_coeff": 203
+    "regularization_coeff": 295
 }

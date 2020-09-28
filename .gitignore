@@ -1,1 +1,6 @@
-/learning_data
+learning_data/
+*.csv
+*.npy
+*.pkl
+__pycache__/
+MESH

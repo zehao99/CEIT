@@ -86,10 +86,13 @@ class EJAC(object):
                     self.electrode_original_potential[i * (self.electrode_num - 1) + count] = np.abs(electrode_potential[m]) 
                     count += 1
 
-    def JAC_calculation(self, calc_from = 0, calc_end = 16,capacitance_change = 1e-3):
+    def JAC_calculation(self):
         """
         calculate JAC matrix
         """
+        calc_from = self.config["calc_from"];
+        calc_end = self.config["calc_end"];
+        capacitance_change = self.config["capacitance_change_for_JAC"]
         if self.first:
             if calc_from > 0:
                 self.read_JAC_np()
