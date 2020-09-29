@@ -1,5 +1,7 @@
 # CEIT
 
+![logo_image](./logo.png)
+
 Package for Electric Impedance Tomography on detecting Capacitance Density
 
 ## Overview
