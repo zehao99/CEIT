@@ -23,11 +23,11 @@ class EJAC(object):
 
                 JAC_calculation(self): Calculate and return JAC Matrix, Auto Save to File
 
-                eit_solve(self, detect_potential, lmbda = 203): Solve inverse problems
+                eit_solve(self, detect_potential, lmbda): Solve inverse problems
 
                 read_JAC_2file(self, filename): Load JAC matrix from file
 
-                save_inv_matrix(self, lmbda = 203): Calculate the inverse matrix and save to file (Preparation for realtime calculation)
+                save_inv_matrix(self, lmbda): Calculate the inverse matrix and save to file (Preparation for realtime calculation)
 
                 eit_solve_direct(self, detect_potential): High speed reconstruction(Based on inverse matrix MUST RUN save_inv_matrix())
 
@@ -38,35 +38,28 @@ class EJAC(object):
                 plot_sensitivity(self, area_normalization = True): Plot sensitivity map (Sum of columns in JAC_Matrix)
     """
 
-    def __init__(self, mesh, electrode_num, electrode_centers, radius=0.1, frequency=20000.0 * 2 * np.pi, mode='n',
-                 first=False, detection_bound=40, overall_capacitance=0):
+    def __init__(self, mesh):
         """
         Prepare for calculation,
 
         Args:
             mesh : DICT element mesh See readmesh.py
-            electrode_num : INT
-            electrode_centers: NDARRAY electrode_num * (electrode_num - 1) dimension
-            radius: FLOAT radius of electrode (half side length)
-            frequency: FLOAT input frequency
-            mode: 'n' - no initial condition
-                  'i' - with initial condition
-            first: True - initial calculation
-                   False - further calculation
+
         """
 
         self.config = get_config()
-        self.mode = mode
-        self.first = first
-        self.detection_bound = detection_bound
-        self.overall_capacitance = overall_capacitance
+        self.mode = 'n'
+        self.first = self.config["is_first_JAC_calculation"]
+        self.detection_bound = self.config["detection_bound"]
+        self.overall_capacitance = self.config["overall_origin_capacitance"]
         # Create FEM class
         # Set overall permitivity as the conductive sheet
         permi = 1 / 10000
-        self.fwd_FEM = EFEM(mesh, electrode_num, electrode_centers, radius, frequency, perm=permi)
-        self.electrode_num = electrode_num
+        self.electrode_centers = self.config["electrode_centers"]
+        self.fwd_FEM = EFEM(mesh)
+        self.electrode_num = len(self.electrode_centers)
         # Initialize Matrix
-        self.pattern_num = electrode_num * (electrode_num - 1)
+        self.pattern_num = self.electrode_num * (self.electrode_num - 1)
         self.elem_num = self.fwd_FEM.elem_num
         self.electrode_original_potential = np.zeros((self.pattern_num))
         # Choose detection_area
@@ -97,6 +90,9 @@ class EJAC(object):
     def JAC_calculation(self):
         """
         calculate JAC matrix
+
+        Returns:
+            JAC Matrix
         """
         calc_from = self.config["calc_from"]
         calc_end = self.config["calc_end"]

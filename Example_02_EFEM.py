@@ -8,7 +8,7 @@ mesh_obj, electrode_num, electrode_centers, radius = read_mesh.return_mesh()
 
 # extract node, element, alpha
 """ problem setup """
-fwd = EFEM(mesh_obj, electrode_num, electrode_centers, radius, perm=1 / 200000)
+fwd = EFEM(mesh_obj)
 
 obj_x = -20  # object x position
 obj_y = -10  # object y position

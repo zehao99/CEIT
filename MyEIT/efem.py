@@ -31,8 +31,7 @@ class EFEM(object):
 
     """
 
-    def __init__(self, mesh, electrode_nums, electrode_center_list, electrode_radius, frequency=20000.0 * 2 * np.pi,
-                 perm=1):
+    def __init__(self, mesh):
         """
         Initializer for EFEM class
 
@@ -70,16 +69,17 @@ class EFEM(object):
         if np.shape(self.elem)[1] != 3:
             raise Exception("2D Elements dimension incorrect")
         self.elem_num = np.shape(self.elem)[0]
-        self.elem_perm = mesh['perm'] * perm
+        self.perm = 1 / self.config["resistance"]
+        self.elem_perm = mesh['perm'] * self.perm
         self.elem_capacitance = np.zeros(np.shape(self.elem_perm))
         self.elem_param = np.zeros((np.shape(self.elem)[0], 9))  # area, b1, b2, b3, c1, c2, c3, x_average, y_average
-        self.electrode_num = electrode_nums
-        self.electrode_center_list = electrode_center_list
-        self.electrode_radius = electrode_radius
+        self.electrode_center_list = self.config["electrode_centers"]
+        self.electrode_num = len(self.electrode_center_list)
+        self.electrode_radius = self.config["electrode_radius"]
         self.electrode_mesh = dict()
-        for i in range(electrode_nums):
+        for i in range(self.electrode_num):
             self.electrode_mesh[i] = list()
-        self.freq = frequency
+        self.freq = self.config["signal_frequency"] * 2 * np.pi
         self.K_sparse = np.zeros((self.node_num, self.node_num), dtype=np.complex128)
         self.K_node_num_list = [x for x in range(self.node_num)]  # Node number mapping list when calculating
         self.node_potential = np.zeros((self.node_num), dtype=np.complex128)

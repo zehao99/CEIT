@@ -205,6 +205,10 @@ class read_mesh_from_csv(object):
         self.elements = read_parameter(filename + 'elements', self.folder_name)
 
     def return_mesh(self):
+        """
+        Returns:
+            mesh object, electrode number, electrode centers, electrode radius
+        """
         element_num = len(self.elements)
         mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes), 'perm': np.ones(element_num)}
         return mesh_obj, self.electrode_num, self.electrode_centers, self.electrode_radius

@@ -13,14 +13,23 @@ The `efem.py` module is written only for this problem, other modules can be reus
 CEIT provides the ability to generate solver for realtime reconstruction.
 Given the meshes and electrode positions, CEIT can generate Inverse model for any planar sensor design.
 
+> **KIND REMINDER**: be sure to config the `.gitignore` file, the `.csv` files generated are pretty large...
+
 ## Requirements
 
 See `requirements.txt`, one thing to mention is that to accelerate the calculation process, we used GPU acceleration for matrix multiplication.
 So if you don't have a beefy GPU, then please set the device option in `config.json` to `"cpu"` and do the following things:
-> 1. You sure cannot install `cupy` without CUDA, remove it from the `requirements.txt`.
-> 2. comment out content inside function `calculate_FEM_equation()` at the end of file `./MyEIT/efem.py`.
-> 3. Add a line `pass` to the function.
-> 4. comment out `import cupy as cp` in `./MyEIT/efem.py`.
+> 1. comment out content inside function `calculate_FEM_equation()` at the end of file `./MyEIT/efem.py`.
+> 2. Add a line `pass` to the function.
+> 3. comment out `import cupy as cp` in `./MyEIT/efem.py`.
+
+```shell
+python -m pip install -r requirements.txt
+```
+If you have a good GPU, install `cupy` package according to your CUDA version.
+```shell
+python -m pip install cupy-cuda101
+```
 
 ## Configure the calculation
 
@@ -30,11 +39,14 @@ A `.fem` file is needed for initializing the whole process. You can get one by u
 
 Also, you have to decide your electrode center positions, and your radius of the electrode.
 Inside this package, the electrode is square shaped for which the radius means **half width** of the square.
+Be sure to set all the fields.
 
 For Examples see `config.json` file.
 
 | Parameter Name | Type | Description |
 | :----: | :----: |:----:|
+|`"signal_frequency"`| `Number` | Frequency of your input signal unit: Hz |
+|`"resistance"`|`Number`| The resistance of the coductive sheet unit: &Omega;/sq 
 | `"mesh_filename"` | `String` | File name for your mesh file |
 | `"folder_name"` | `String` | Specify the folder you push your mesh file and all the cache files.|
 | `"optimize_node_num"`| `Boolean` | Whether shuffle node number at initializing mesh |
@@ -63,11 +75,11 @@ from MyEIT.readmesh import read_mesh_from_csv
 """ Read mesh from csv files(after initialization) """
 
 read_mesh = read_mesh_from_csv()
-mesh_obj, electrode_num, electrode_centers, radius = read_mesh.return_mesh()
+mesh_obj,_,_,_ = read_mesh.return_mesh()
 
 """ problem setup """
 
-fwd = EFEM(mesh_obj, electrode_num, electrode_centers, radius, perm=1 / 200000)
+fwd = EFEM(mesh_obj)
 fwd.change_add_capa_geometry([-0.02, -0.01], 0.01, 1e-7, 'square')
 node_u, elem_u, electrode_potential = fwd.calculation(2)
 
@@ -117,28 +129,28 @@ The default calculation unit inside CEIT is **SI** units, if your mesh is in **m
 from MyEIT.readmesh import read_mesh_from_csv
 
 read_mesh = read_mesh_from_csv()
-mesh_obj, electrode_num, electrode_centers, electrode_radius = read_mesh.return_mesh()
+mesh_obj,_,_,_ = read_mesh.return_mesh()
 ```
 
-## Forward Calculator
+## Forward Simulator
 
 The forward calculator is used Finite Element Method to calculate potential distribution on the surface.
 
-First instantiate the class
+First instantiate the class after reading the mesh file.
 ```python
 from MyEIT.efem import EFEM
 
-fwd_model = EFEM(mesh_obj, electrode_num, electrode_centers, electrode_radius)
+fwd_model = EFEM(mesh_obj)
 ```
 
 The initializer will automatically prepare the object for calculation, now you have a fully functioning forward solver.
 
 There are several functions provided by this object you can call to change capacitance value and do calculation.
 
-|function name|Description|
+|function Name|Description|
 |:----:|:----:|
 |`EFEM.calculation(electrode_input)`|Forward calculation on given input electrode selection **You have to call this to do the calculation**|
-|`EFEM.plot_potential_map(ax)`|Plot the current forward result, all `0` before calling `calculation()`|
+|`EFEM.plot_potential_map(ax)`|Plot the current forward result, default is `0` before calling `calculation()`|
 |`EFEM.plot_current_capacitance(ax)`|Plot the given input condition|
 |`EFEM.change_capacitance_elementwise(element_list, capacitance_list)`|Change capacitance density on selected elements|
 |`EFEM.change_capacitance_geometry(center, radius, value, shape)`|**Assign** capacitance density on elements inside a certain geometry (square or circle) to the given value|
@@ -147,5 +159,33 @@ There are several functions provided by this object you can call to change capac
 |`EFEM.reset_capacitance(overall_capa)`|Set capacitance density on all elements to `overall_capa`|
 
 ## Jacobian Constructor
+
+The `EJAC` class provides the function of doing jacobian calculation.
+
+First instantiate the class, this class doesn't require creating the `EFEM` class, it will initialize it internally.
+However, you have to get the mesh and pass it into the initializer
+```python
+from MyEIT.ejac import EJAC
+
+jac_calc = EJAC(mesh_obj)
+jac_calc.JAC_calculation()
+```
+
+If you had set the value `"is_first_JAC_calculation"` inside `config.json` file to `true`, then, if you call method `EJAC.JAC_calculation()`, it will start calculating the jacobianmatrix starting from electrode `"calc_from"` to `"calc_end"`
+This allows you to calculate the jacobian matrix on different machines and then combine them together.
+After one iteration (an electrode input condition), the function saves JAC matrix to cache file `JAC_cache.npy`.
+
+**If the calculation is completed make sure you change the `"is_first_JAC_calculation"` property to `false`, so it won't calculate unexpectedly.**
+
+**This calculation takes a lot of time so please make sure everything's right before starting.**
+
+This class also provide some methods for you to reconstruct actual EIT data.
+
+|Function Name|Description|
+|:----:|:----:|
+|`EJAC.JAC_calculation()`| Calculate and return JAC Matrix, Auto Save to File on every iteration|
+|`EJAC.eit_solve(self, detect_potential, lmbda)`| Solve inverse problems base on the initial amplitude output (with no object above) generated by simulation|
+|`EJAC.save_inv_matrix(lmbda)`| set up inverse matrix for realtime solver with regularization parameter `lmbda`|
+|`EJAC.show_JAC()`| Visualize jacobian matrix with color map|
 
 ## Realtime Solver
