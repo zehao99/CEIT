@@ -5,7 +5,10 @@ Package for Electric Impedance Tomography on detecting Capacitance Density
 ## Overview
 
 This package is specifically designed to solve the tomographic problem concerned with detecting proximity map by a planar conductive sensor.
+
 For more information, please check my paper.
+
+The `efem.py` module is written only for this problem, other modules can be reused in any other EIT application.
 
 CEIT provides the ability to generate solver for realtime reconstruction.
 Given the meshes and electrode positions, CEIT can generate Inverse model for any planar sensor design.
@@ -28,31 +31,25 @@ A `.fem` file is needed for initializing the whole process. You can get one by u
 Also, you have to decide your electrode center positions, and your radius of the electrode.
 Inside this package, the electrode is square shaped for which the radius means **half width** of the square.
 
-```json
-{
-    "mesh_filename": "EITmesh.fem",
-    "optimize_node_num": false,
-    "shuffle_element": false,
-    "electrode_centers": [
-        [47,0],[47,23.5],[47,47],
-        [23.5,47],[0,47],[-23.5,47],[-47,47],
-        [-47,23.5],[-47,0],[-47,-23.5],[-47,-47],
-        [-23.5,-47],[0,-47],[23.5,-47],[47,-47],
-        [47,-23.5]
-    ],
-    "electrode_radius": 3,
-    "reconstruction_mode": "n",
-    "capacitance_change_for_JAC": 1e-3,
-    "overall_origin_capacitance": 0,
-    "detection_bound": 45,
-    "Is_first_JAC_calculation": true,
-    "folder_name": "Mesh_50_50", 
-    "calc_from": 0,
-    "calc_end": 16,
-    "regularization_coeff": 295,
-    "device": "gpu"
-}
-```
+For Examples see `config.json` file.
+
+| Parameter Name | Type | Description |
+| :----: | :----: |:----:|
+| `"mesh_filename"` | `String` | File name for your mesh file |
+| `"folder_name"` | `String` | Specify the folder you push your mesh file and all the cache files.|
+| `"optimize_node_num"`| `Boolean` | Whether shuffle node number at initializing mesh |
+| `"shuffle_element"` | `Boolean` | Whether shuffle elemets at initializing mesh |
+| `"electrode_centers"` | `Array` | Center of electrodes on perimeter THE UNIT IS **mm** |
+| `"electrode_radius"`| `Number` | In this package electrodes are treated as square shaped, this parameter is half of its side length.
+| `"capacitance_change_for_JAC"` |`Number`| Capacitance change on every single element when calculating the Jacobian matrix.|
+| `"detection_bound"`| `Number` | Specify the detection boundary size please keep its unit identical to the `"unit"` property|
+| `"calc_from"`| `Number` | Set starting electrode for Jacobian calculation, for multiple instances compute usage.
+| `"calc_end"` | `Number` | Set ending electrode for Jacobian calculation, for multiple instances compute usage.
+| `"regularization_coeff"` | `Number` | This parameter is used in regularization equation of reconstruction, **you will have to optimize it**.
+| `"device"` |  `String` | Calculation device, only `"cpu"` or `"gpu"` is accepted, if you choose `"cpu"` please follow the instructions in the previous paragraph.|
+| `"unit"` | `String` | Unit for the input above.
+| `"reconstruction_mode"` |`String`| DEPRECATED ITEM keep this to `"n"`|
+| `"overall_origin_capacitance"` |`Number`| DEPRECATED ITEM keep this to `0`|
 
 ## Quick Start
 
@@ -116,7 +113,7 @@ There are two options regarding the length unit.
 `read_mesh_from_csv_SI` is in **mm** unit and `read_mesh_from_csv` is in **SI** unit.
 The default calculation unit inside CEIT is **SI** units, if your mesh is in **mm** unit, call `read_mesh_from_csv_SI` to read the mesh into SI unit.
 
-You need to call `return_mesh` method to get the mesh object and electrode information.
+**You need to call `return_mesh` method to get the mesh object and electrode information.**
 
 ```python
 from MyEIT.readmesh import read_mesh_from_csv_SI
