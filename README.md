@@ -65,33 +65,12 @@ For Examples see `config.json` file.
 
 ## Quick Start
 
-Here is a sample for simple forward calculation using this package.
+There are some samples in the folder.
+* `Example_01` Initilize Mesh
+* `Example_02` Forward Calculation
+* `Example_03` Generate jacobian matrix
+* `Example_04` Realtime solver
 
-```python
-import matplotlib.pyplot as plt
-from MyEIT.efem import EFEM
-from MyEIT.readmesh import read_mesh_from_csv
-
-""" Read mesh from csv files(after initialization) """
-
-read_mesh = read_mesh_from_csv()
-mesh_obj,_,_,_ = read_mesh.return_mesh()
-
-""" problem setup """
-
-fwd = EFEM(mesh_obj)
-fwd.change_add_capa_geometry([-0.02, -0.01], 0.01, 1e-7, 'square')
-node_u, elem_u, electrode_potential = fwd.calculation(2)
-
-print(electrode_potential)
-
-""" Visualization """
-
-fig, ax = plt.subplots(figsize=(3.2, 3.2))
-im = fwd.plot_potential_map(ax)
-plt.colorbar(im)
-plt.show()
-```
 
 ## Read Mesh Class
 
