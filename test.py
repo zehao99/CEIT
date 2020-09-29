@@ -1,8 +1,3 @@
-import numpy as np;
+from MyEIT.utilities import read_csv_from_file
 
-node_list = np.linspace(0,99,100)
-record = np.array([node_list,node_list])
-
-def swap(node_list, a, b):
-    temp = a
-    temp = b
+print(read_csv_from_file("delta_V.csv", "."))
