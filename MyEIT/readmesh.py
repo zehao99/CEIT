@@ -1,11 +1,13 @@
-import re
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import csv
-from .utilities import save_parameter
+import re
+
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import numpy as np
+
 from .utilities import get_config
 from .utilities import read_parameter
+from .utilities import save_parameter
 
 """
     Call function init_mesh() to initiate mesh after making a new one
@@ -37,7 +39,8 @@ class readmesh(object):
     """
 
     def __init__(self, filename, electrode_centers, electrode_radius, folder_name="", optimize_node_num=False,
-                 shuffle_element=False):
+                 shuffle_element=False, is_SI=False):
+        self.config = get_config()
         self.nodes = []
         self.elements = []
         self.folder_name = folder_name
@@ -57,7 +60,8 @@ class readmesh(object):
         self.electrode_centers = electrode_centers
         self.electrode_num = len(self.electrode_centers)
         self.electrode_radius = electrode_radius  # end of electrode info
-
+        if not is_SI:
+            self.nodes = list(np.array(self.nodes) / 1000)
         self.clean_mesh()
         if optimize_node_num:
             self.optimize_node_number()
@@ -79,7 +83,7 @@ class readmesh(object):
                 continue
             current = [i]
             for j, node_2 in enumerate(origin_nodes):
-                if node == node_2 and i != j and i < j:
+                if node[0] == node_2[0] and node[1] == node_2[1] and i < j:
                     record.append(j)
                     current.append(j)
             new_nodes.append(node)
@@ -161,52 +165,6 @@ class readmesh(object):
         save_parameter(self.elements, filename + 'elements', self.folder_name)
 
 
-class read_mesh_from_csv_SI(object):
-    """
-    Read mesh from csv file use standard international unit
-
-    mode: 'csv' read from .csv file
-          'pkl' read from .pkl cache
-    """
-
-    def __init__(self, name='Mesh_Cache', mode='pkl'):
-        self.config = get_config()
-        self.folder_name = self.config["folder_name"]
-        if mode == 'csv':
-            self.nodes = []
-            self.elements = []
-            with open(self.folder_name + '/' + name + '_Node.csv', newline='') as datafile:
-                csv_reader = csv.reader(datafile, delimiter=',')
-                for line in csv_reader:
-                    if line:
-                        line = [float(x) for x in line]
-                        self.nodes.append(line)
-            with open(self.folder_name + '/' + name + '_Element.csv', newline='') as datafile_2:
-                csv_reader_2 = csv.reader(datafile_2, delimiter=',')
-                for line in csv_reader_2:
-                    if line:
-                        line = [int(x) for x in line]
-                        self.elements.append(line)
-        elif mode == 'pkl':
-            self.read_from_pkl()
-        else:
-            raise Exception('No such mesh reading mode.')
-        # electrode information center, radius FOR FASTER PERFORMANCE PLEASE COPY FROM CONFIG
-        self.electrode_centers = np.array(self.config["electrode_centers"]) / 1000
-        self.electrode_num = len(self.electrode_centers)
-        self.electrode_radius = 0.003
-
-    def read_from_pkl(self, filename='Mesh_'):
-        self.nodes = read_parameter(filename + 'nodes', self.folder_name)
-        self.elements = read_parameter(filename + 'elements', self.folder_name)
-
-    def return_mesh(self):
-        element_num = len(self.elements)
-        mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes) / 1000,
-                    'perm': np.ones(element_num)}
-        return mesh_obj, self.electrode_num, self.electrode_centers, self.electrode_radius
-
-
 class read_mesh_from_csv(object):
     """
     Read mesh from csv file
@@ -240,7 +198,7 @@ class read_mesh_from_csv(object):
         # electrode information center, radius FOR FASTER PERFORMANCE PLEASE COPY FROM CONFIG
         self.electrode_centers = np.array(self.config["electrode_centers"])
         self.electrode_num = len(self.electrode_centers)
-        self.electrode_radius = 3
+        self.electrode_radius = self.config["electrode_radius"]
 
     def read_from_pkl(self, filename='Mesh_'):
         self.nodes = read_parameter(filename + 'nodes', self.folder_name)
@@ -263,7 +221,9 @@ def init_mesh(draw=False):
     folder_name = config["folder_name"]
     optimize_node_num = config["optimize_node_num"]
     shuffle_element = config["shuffle_element"]
-    read_mesh = readmesh(filename, electrode_centers, electrode_radius, folder_name, optimize_node_num, shuffle_element)
+    is_SI = config["unit"] == "SI"
+    read_mesh = readmesh(filename, electrode_centers, electrode_radius, folder_name, optimize_node_num, shuffle_element,
+                         is_SI=is_SI)
     mesh_obj, electrode_num, electrode_centers, electrode_radius = read_mesh.return_mesh()
     if draw:
         draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius)
@@ -286,8 +246,6 @@ def draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius):
     x, y = points[:, 0] * 0.7, points[:, 1] * 0.7
     fig, ax = plt.subplots(figsize=(4.25, 4.25))
     im = ax.tripcolor(x, y, tri, np.abs(perm), shading='flat', edgecolors='k', vmax=2, vmin=0)
-    ax.set_xticks([-25, 0, 25])
-    ax.set_yticks([-25, 0, 25])
     # fig.colorbar(im)
     for i, electrode_center in enumerate(electrode_centers):
         x = electrode_center[0] - electrode_radius
@@ -308,8 +266,6 @@ def draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius):
     ax.plot(points[:, 0], points[:, 1], 'ro', markersize=5)
     for i in range(points.shape[0]):
         ax.text(points[i, 0], points[i, 1], str(i), fontsize=8)
-    ax.set_xlim([-55, 55])
-    ax.set_ylim([-55, 55])
     ax.grid('on')
     ax.set_aspect('equal')
     plt.show()

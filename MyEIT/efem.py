@@ -10,28 +10,6 @@ class EFEM(object):
     """
     FEM solving for capacitance included forward problem,
 
-    Parameters:
-                mesh: dict with "node", "element" "perm"
-                        "node": N_node * 2 NDArray 
-                            contains coordinate information of each node
-                        "element": N_elem * 3 NDArray
-                            contains the node number contained in each element
-                        "perm": N_elem NDArray
-                            contains permittivity on each element Default is 1
-    
-                electrode_nums:  INT electrode numbers
-                                 PLEASE CALL calc_electrode_elements(...) FUNCTION BEFORE PROCEEDING
-    
-                electrode_center_list : electrode_nums * 2 NDArray
-                                        electrode center info
-
-                electrode_radius : FLOAT electrode radius(square shape) (a/2)
-
-                frequency : FLOAT Input frequency
-
-                perm : FLOAT Input overall permittivity
-
-
     Functions:
                 calculation(self,electrode_input): Forward Calculation
 
@@ -47,16 +25,38 @@ class EFEM(object):
 
                 change_conductivity(self, element_list, resistance_list): Change conductivity
 
-                calc_electrode_elements(self, electrode_number, center, radius): Set electrode elements
-                
                 reset_capacitance(self, overall_capa):Reset all capacitance to 0
                 
-                reset_capa_to_initial(self, capacitance_value): Reset with radius 20 square value 10e-8.46
+                reset_capa_to_initial(self, capacitance_value): DEPRECATED Reset with radius 20 square value 10e-8.46
 
     """
 
     def __init__(self, mesh, electrode_nums, electrode_center_list, electrode_radius, frequency=20000.0 * 2 * np.pi,
                  perm=1):
+        """
+        Initializer for EFEM class
+
+        Args:
+                mesh: dict with "node", "element" "perm"
+                        "node": N_node * 2 NDArray
+                            contains coordinate information of each node
+                        "element": N_elem * 3 NDArray
+                            contains the node number contained in each element
+                        "perm": N_elem NDArray
+                            contains permittivity on each element Default is 1
+
+                electrode_nums:  INT electrode numbers
+                                 PLEASE CALL calc_electrode_elements(...) FUNCTION BEFORE PROCEEDING
+
+                electrode_center_list : electrode_nums * 2 NDArray
+                                        electrode center info
+
+                electrode_radius : FLOAT electrode radius(square shape) (a/2)
+
+                frequency : FLOAT Input frequency
+
+                perm : FLOAT Input overall permittivity
+        """
         # check data structure
         self.config = get_config()
         self.nodes = mesh['node']
@@ -99,7 +99,7 @@ class EFEM(object):
         self.calc_init()  # 0.053 s
         self.construct_sparse_matrix()  # 0.1343s
         self.set_boundary_condition(electrode_input)  # 0.005s
-        self.set_boundary_condition_grounded()
+        # self.set_boundary_condition_grounded()
         # split time into frames
         # frames = 1
         # temp_node_potential = np.zeros((self.node_num), dtype = np.complex128)
@@ -285,46 +285,6 @@ class EFEM(object):
             center = self.electrode_center_list[i]
             self.calc_electrode_elements(i, center, self.electrode_radius)
 
-    def initialize(self):
-        """
-        DEPRECATED
-
-        Update parameters for each element,
-
-        Parameters used for calculating sparse matrix
-        a1 = x2 * y3 - x3 * y2
-        b1 = y2 - y3
-        c1 = x3 - x2
-        area = (b1 * c2 - b2 * c1) / 2
-        Calculate electrodes' mesh area
-        """
-        x = [.0, .0, .0]
-        b = [.0, .0, .0]
-        c = [.0, .0, .0]
-        y = [.0, .0, .0]
-        count = 0
-        for element in self.elem:
-            # change to counter clockwise
-            for i in range(3):
-                x[i] = self.nodes[element[i], 0]
-                y[i] = self.nodes[element[i], 1]
-            if ((y[1] - y[2]) * (x[0] - x[2]) - (y[2] - y[0]) * (x[2] - x[1])) / 2 < 0:
-                self.elem[count][1], self.elem[count][2] = self.elem[count][2], self.elem[count][1]
-                x[1], x[2] = x[2], x[1]
-                y[1], y[2] = y[2], y[1]
-            for i in range(3):
-                b[i] = y[(1 + i) % 3] - y[(2 + i) % 3]
-                c[i] = x[(2 + i) % 3] - x[(1 + i) % 3]
-            area = (b[0] * c[1] - b[1] * c[0]) / 2
-            x_average = np.mean(x)
-            y_average = np.mean(y)
-            self.elem_param[count] = [area, b[0], b[1], b[2], c[0], c[1], c[2], x_average, y_average]
-            count += 1
-        # Set electrode meshes(Square)
-        for i in range(self.electrode_num):
-            center = self.electrode_center_list[i]
-            self.calc_electrode_elements(i, center, self.electrode_radius)
-
     def construct_sparse_matrix(self):
         """
         construct the original sparse matrix 
@@ -430,7 +390,7 @@ class EFEM(object):
         if self.config["device"] == "gpu":
             potential_f = calculate_FEM_equation(potential_f, K_f, K_b, potential_b)  # GPU_Method faster
         elif self.config["device"] == "cpu":
-            potential_f = - np.dot(np.dot(np.linalg.inv(K_f) , K_b) , potential_b)
+            potential_f = - np.dot(np.dot(np.linalg.inv(K_f), K_b) , potential_b)
         else:
             raise Exception('Please make sure you specified device inside the config file to \"cpu\" or \"gpu\"')
         potential_f = np.reshape(potential_f, (-1))
@@ -542,7 +502,6 @@ def calculate_FEM_equation(potential_f, K_f, K_b, potential_b):
     """
     GPU acceleration for inverse calculation,
     """
-    # pass # Uncomment this if using CPU
     K_f_gpu = cp.asarray(K_f)
     K_b_gpu = cp.asarray(K_b)
     potential_b_gpu = cp.asarray(potential_b)

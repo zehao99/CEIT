@@ -11,6 +11,12 @@ def get_config():
     """
     with open('./config.json', 'r', encoding='utf-8') as f:
         config = loads(f.read())
+    assert config["unit"] == "mm" or config["unit"] == "SI", "Please enter the accurate unit."
+
+    if config["unit"] == "mm":
+        config["electrode_centers"] = list(np.array(config["electrode_centers"]) / 1000)
+        config["electrode_radius"] = config["electrode_radius"] / 1000
+        config["detection_bound"] = config["detection_bound"] / 1000
     return config
 
 

@@ -47,7 +47,7 @@ For Examples see `config.json` file.
 | `"calc_end"` | `Number` | Set ending electrode for Jacobian calculation, for multiple instances compute usage.
 | `"regularization_coeff"` | `Number` | This parameter is used in regularization equation of reconstruction, **you will have to optimize it**.
 | `"device"` |  `String` | Calculation device, only `"cpu"` or `"gpu"` is accepted, if you choose `"cpu"` please follow the instructions in the previous paragraph.|
-| `"unit"` | `String` | Unit for the input above.
+| `"unit"` | `String` | Unit for the input above. Only `"mm"` or `"SI"` is accepted, they will all be transferred into SI unit, please keep the units inside mesh file and config file the same.|
 | `"reconstruction_mode"` |`String`| DEPRECATED ITEM keep this to `"n"`|
 | `"overall_origin_capacitance"` |`Number`| DEPRECATED ITEM keep this to `0`|
 
@@ -58,11 +58,11 @@ Here is a sample for simple forward calculation using this package.
 ```python
 import matplotlib.pyplot as plt
 from MyEIT.efem import EFEM
-from MyEIT.readmesh import read_mesh_from_csv_SI
+from MyEIT.readmesh import read_mesh_from_csv
 
 """ Read mesh from csv files(after initialization) """
 
-read_mesh = read_mesh_from_csv_SI()
+read_mesh = read_mesh_from_csv()
 mesh_obj, electrode_num, electrode_centers, radius = read_mesh.return_mesh()
 
 """ problem setup """
@@ -108,21 +108,43 @@ init_mesh(draw=True)
 
 After initializing the mesh, you can quickly read from the cache file.
 
-There are two options regarding the length unit.
+Class `read_mesh_from_csv` provides function to read mesh from csv file.
+The default calculation unit inside CEIT is **SI** units, if your mesh is in **mm** unit, please set in `config.json` file.
 
-`read_mesh_from_csv_SI` is in **mm** unit and `read_mesh_from_csv` is in **SI** unit.
-The default calculation unit inside CEIT is **SI** units, if your mesh is in **mm** unit, call `read_mesh_from_csv_SI` to read the mesh into SI unit.
-
-**You need to call `return_mesh` method to get the mesh object and electrode information.**
+**You need to call `return_mesh()` method to get the mesh object and electrode information.**
 
 ```python
-from MyEIT.readmesh import read_mesh_from_csv_SI
+from MyEIT.readmesh import read_mesh_from_csv
 
-read_mesh = read_mesh_from_csv_SI()
-mesh_obj, electrode_num, electrode_centers, radius = read_mesh.return_mesh()
+read_mesh = read_mesh_from_csv()
+mesh_obj, electrode_num, electrode_centers, electrode_radius = read_mesh.return_mesh()
 ```
 
 ## Forward Calculator
+
+The forward calculator is used Finite Element Method to calculate potential distribution on the surface.
+
+First instantiate the class
+```python
+from MyEIT.efem import EFEM
+
+fwd_model = EFEM(mesh_obj, electrode_num, electrode_centers, electrode_radius)
+```
+
+The initializer will automatically prepare the object for calculation, now you have a fully functioning forward solver.
+
+There are several functions provided by this object you can call to change capacitance value and do calculation.
+
+|function name|Description|
+|:----:|:----:|
+|`EFEM.calculation(electrode_input)`|Forward calculation on given input electrode selection **You have to call this to do the calculation**|
+|`EFEM.plot_potential_map(ax)`|Plot the current forward result, all `0` before calling `calculation()`|
+|`EFEM.plot_current_capacitance(ax)`|Plot the given input condition|
+|`EFEM.change_capacitance_elementwise(element_list, capacitance_list)`|Change capacitance density on selected elements|
+|`EFEM.change_capacitance_geometry(center, radius, value, shape)`|**Assign** capacitance density on elements inside a certain geometry (square or circle) to the given value|
+|`EFEM.change_add_capa_geometry(center, radius, value, shape)`|**Add** the given capacitance density on elements inside a certain geometry|
+|`EFEM.change_conductivity(element_list, resistance_list)`|Change conductivity on certain elements|
+|`EFEM.reset_capacitance(overall_capa)`|Set capacitance density on all elements to `overall_capa`|
 
 ## Jacobian Constructor
 
