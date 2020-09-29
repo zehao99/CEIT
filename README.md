@@ -13,7 +13,7 @@ The `efem.py` module is written only for this problem, other modules can be reus
 CEIT provides the ability to generate solver for realtime reconstruction.
 Given the meshes and electrode positions, CEIT can generate Inverse model for any planar sensor design.
 
-##Requirements
+## Requirements
 
 See `requirements.txt`, one thing to mention is that to accelerate the calculation process, we used GPU acceleration for matrix multiplication.
 So if you don't have a beefy GPU, then please set the device option in `config.json` to `"cpu"` and do the following things:
