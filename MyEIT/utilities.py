@@ -8,6 +8,7 @@ import csv
 def get_config():
     """
     Get info in the config.json file
+    and turn all data to SI units
     """
     with open('./config.json', 'r', encoding='utf-8') as f:
         config = loads(f.read())
