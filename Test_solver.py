@@ -1,3 +1,3 @@
-from MyEIT.solver import solver
+from MyEIT.solver import Solver
 
-EITSolver = solver()
+EITSolver = Solver()

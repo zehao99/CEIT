@@ -1,7 +1,7 @@
 import numpy as np
 import csv
 from MyEIT.efem import EFEM
-from MyEIT.readmesh import read_mesh_from_csv_mm
+from MyEIT.readmesh import read_mesh_from_csv_SI
 
 def write_data(capa, potential_readings):
     with open('learning_data/capacitance.csv', "a", newline= '') as csvfile:
@@ -16,7 +16,7 @@ def write_data(capa, potential_readings):
 if __name__ == "__main__":
 
     """ 0. construct mesh """
-    read_mesh = read_mesh_from_csv_mm()
+    read_mesh = read_mesh_from_csv_SI()
     mesh_obj, electrode_num, electrode_centers, radius = read_mesh.return_mesh()
     # extract node, element, alpha
     points = mesh_obj['node']
