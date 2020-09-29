@@ -3,3 +3,6 @@ learning_data/
 *.npy
 *.pkl
 __pycache__/
+venv/
+.vscode/
+.idea/

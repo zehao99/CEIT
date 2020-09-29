@@ -1,8 +1,25 @@
 # CEIT
 
+Package for Electric Impedance Tomography on detecting Capacitance Density
+
 ## Overview
 
-## Configure the caculation
+This package is specifically designed to solve the tomographic problem concerned with detecting proximity map by a planar conductive sensor.
+For more information, please check my paper.
+
+CEIT provides the ability to generate solver for realtime reconstruction.
+Given the meshes and electrode positions, CEIT can generate Inverse model for any planar sensor design.
+
+##Requirements
+
+See `requirements.txt`, one thing to mention is that to accelerate the calculation process, we used GPU acceleration for matrix multiplication.
+So if you don't have a beefy GPU, then please set the device option in `config.json` to `"cpu"` and do the following things:
+> 1. You sure cannot install `cupy` without CUDA, remove it from the `requirements.txt`.
+> 2. comment out content inside function `calculate_FEM_equation()` at the end of file `./MyEIT/efem.py`.
+> 3. Add a line `pass` to the function.
+> 4. comment out `import cupy as cp` in `./MyEIT/efem.py`.
+
+## Configure the calculation
 
 You should configure the `config.json` file before using this package.
 
@@ -32,7 +49,8 @@ Inside this package, the electrode is square shaped for which the radius means *
     "folder_name": "Mesh_50_50", 
     "calc_from": 0,
     "calc_end": 16,
-    "regularization_coeff": 295
+    "regularization_coeff": 295,
+    "device": "gpu"
 }
 ```
 
@@ -46,16 +64,20 @@ from MyEIT.efem import EFEM
 from MyEIT.readmesh import read_mesh_from_csv_SI
 
 """ Read mesh from csv files(after initialization) """
+
 read_mesh = read_mesh_from_csv_SI()
 mesh_obj, electrode_num, electrode_centers, radius = read_mesh.return_mesh()
-# extract node, element, alpha
+
 """ problem setup """
+
 fwd = EFEM(mesh_obj, electrode_num, electrode_centers, radius, perm=1 / 200000)
 fwd.change_add_capa_geometry([-0.02, -0.01], 0.01, 1e-7, 'square')
 node_u, elem_u, electrode_potential = fwd.calculation(2)
 
 print(electrode_potential)
-# Visualization
+
+""" Visualization """
+
 fig, ax = plt.subplots(figsize=(3.2, 3.2))
 im = fwd.plot_potential_map(ax)
 plt.colorbar(im)
@@ -91,7 +113,8 @@ After initializing the mesh, you can quickly read from the cache file.
 
 There are two options regarding the length unit.
 
-`read_mesh_from_csv` is in **mm** and `read_mesh_from_csv_SI` is in SI unit.
+`read_mesh_from_csv_SI` is in **mm** unit and `read_mesh_from_csv` is in **SI** unit.
+The default calculation unit inside CEIT is **SI** units, if your mesh is in **mm** unit, call `read_mesh_from_csv_SI` to read the mesh into SI unit.
 
 You need to call `return_mesh` method to get the mesh object and electrode information.
 

@@ -7,8 +7,10 @@ kiwisolver==1.2.0
 matplotlib==3.3.2
 numpy==1.19.2
 Pillow==7.2.0
+progressbar2==3.53.1
 pyparsing==2.4.7
 python-dateutil==2.8.1
+python-utils==2.4.0
 six==1.15.0
 torch==1.6.0+cu101
 torchvision==0.7.0+cu101

@@ -1,5 +1,5 @@
 import math
-
+from .utilities import get_config
 import cupy as cp
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -58,6 +58,7 @@ class EFEM(object):
     def __init__(self, mesh, electrode_nums, electrode_center_list, electrode_radius, frequency=20000.0 * 2 * np.pi,
                  perm=1):
         # check data structure
+        self.config = get_config()
         self.nodes = mesh['node']
         self.node_num = np.shape(self.nodes)[0]
         if np.shape(self.nodes)[1] != 2:
@@ -425,8 +426,13 @@ class EFEM(object):
             potential_b = np.append(potential_g, potential_b)
         K_f = self.K_sparse[0: self.node_num_f, 0: self.node_num_f]
         K_b = self.K_sparse[0: self.node_num_f, self.node_num_f: self.node_num]
-        potential_f = calculate_FEM_equation(potential_f, K_f, K_b, potential_b)  # GPU_Method faster
-        # potential_f = - np.dot(np.dot(np.linalg.inv(K_f) , K_b) , potential_b) #solving the linear equation set
+        # solving the linear equation set
+        if self.config["device"] == "gpu":
+            potential_f = calculate_FEM_equation(potential_f, K_f, K_b, potential_b)  # GPU_Method faster
+        elif self.config["device"] == "cpu":
+            potential_f = - np.dot(np.dot(np.linalg.inv(K_f) , K_b) , potential_b)
+        else:
+            raise Exception('Please make sure you specified device inside the config file to \"cpu\" or \"gpu\"')
         potential_f = np.reshape(potential_f, (-1))
         potential_b = np.reshape(potential_b, (-1))
         potential_f = np.append(potential_f, potential_b)
@@ -531,11 +537,12 @@ class EFEM(object):
 
         return im
 
-
+# Comment this function out if use cpu
 def calculate_FEM_equation(potential_f, K_f, K_b, potential_b):
     """
     GPU acceleration for inverse calculation,
     """
+    # pass # Uncomment this if using CPU
     K_f_gpu = cp.asarray(K_f)
     K_b_gpu = cp.asarray(K_b)
     potential_b_gpu = cp.asarray(potential_b)
