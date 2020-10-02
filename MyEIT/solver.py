@@ -1,3 +1,5 @@
+# @author: Li Zehao <https://philipli.art>
+# @license: MIT
 import numpy as np
 import os
 from .utilities import save_parameter

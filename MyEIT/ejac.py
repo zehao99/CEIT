@@ -1,3 +1,6 @@
+
+# @author: Li Zehao <https://philipli.art>
+# @license: MIT
 import csv
 
 # import cupy as cp

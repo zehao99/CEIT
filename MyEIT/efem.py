@@ -1,3 +1,5 @@
+# @author: Li Zehao <https://philipli.art>
+# @license: MIT
 import math
 from .utilities import get_config
 import cupy as cp
