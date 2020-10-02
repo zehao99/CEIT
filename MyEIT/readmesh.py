@@ -210,7 +210,10 @@ class read_mesh_from_csv(object):
             mesh object, electrode number, electrode centers, electrode radius
         """
         element_num = len(self.elements)
-        mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes), 'perm': np.ones(element_num)}
+        if self.config["mesh_unit"] == "mm":
+            mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes) / 1000, 'perm': np.ones(element_num)}
+        else:
+            mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes), 'perm': np.ones(element_num)}
         return mesh_obj, self.electrode_num, self.electrode_centers, self.electrode_radius
 
 

@@ -25,7 +25,9 @@ class EJAC(object):
 
                 eit_solve(self, detect_potential, lmbda): Solve inverse problems
 
-                read_JAC_2file(self, filename): Load JAC matrix from file
+                read_JAC_np(self): Load JAC matrix from file
+
+                save_JAC_np(self): Cache the JAC matrix into file
 
                 save_inv_matrix(self, lmbda): Calculate the inverse matrix and save to file (Preparation for realtime calculation)
 
@@ -129,6 +131,9 @@ class EJAC(object):
             return self.JAC_matrix
 
     def calc_detection_elements(self):
+        """
+        Calculate elements inside the dectection area specified
+        """
         original_element = self.fwd_FEM.elem
         original_x = self.fwd_FEM.elem_param[:, 7]
         original_y = self.fwd_FEM.elem_param[:, 8]
@@ -142,6 +147,9 @@ class EJAC(object):
         self.detection_elem = np.array(new_elem)
 
     def eliminate_non_detect_JAC(self):
+        """
+        Eliminate the rows inside JAC Matrix where element is not used in detection area
+        """
         orig_JAC = np.copy(self.JAC_matrix.T)
         new_JAC = []
         for j in self.detection_index:
@@ -215,6 +223,10 @@ class EJAC(object):
     def save_inv_matrix(self, lmbda=203):
         """
         Calculate and save inverse matrix according to lmbda
+        (Preparation for realtime calculation)
+
+        Args:
+            lmbda: regularization parameter
         """
         J = self.eliminate_non_detect_JAC() - 1
         Q = np.eye(J.shape[1])
@@ -222,6 +234,10 @@ class EJAC(object):
         np.save(self.config["folder_name"] + '/inv_mat.npy', JAC_inv)
 
     def read_inv_matrix(self):
+        """
+        Load inverse matrix from inv_mat.npy
+        """
+
         return np.load(self.config["folder_name"] + '/inv_mat.npy')
 
     def eit_solve_direct(self, detect_potential):
@@ -233,17 +249,21 @@ class EJAC(object):
         capacitance_predict = np.dot(JAC_p, delta_V)
         return capacitance_predict
 
-
-
     def save_JAC_np(self):
+        """
+        save JAC matrix to JAC_cache.npy
+        """
         np.save(self.config["folder_name"] + '/' + 'JAC_cache.npy', self.JAC_matrix)
 
     def read_JAC_np(self):
+        """
+        read JAC matrix to JAC_cache.npy
+        """
         self.JAC_matrix = np.load(self.config["folder_name"] + '/' + 'JAC_cache.npy')
 
     def save_JAC_2file(self):
         """
-        Save jacobian matrix to file
+        Save jacobian matrix to csv file
         """
         with open(self.config["folder_name"] + '/' + 'jac_cache.csv', "w", newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
@@ -252,8 +272,7 @@ class EJAC(object):
 
     def read_JAC_2file(self, mode='normal'):
         """
-        Read jacobian matrix from file
-        parameter: filename STRING
+        Read jacobian matrix from csv file
         """
         if mode == 'normal':
             with open(self.config["folder_name"] + '/' + 'jac_cache.csv', newline='') as csvfile:
@@ -285,6 +304,7 @@ class EJAC(object):
 
     def normalize_sensitivity(self):
         """
+        DEPRECATED
         Normalize JAC by sensitivity
         Didn't work.....
         """

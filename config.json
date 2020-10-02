@@ -22,5 +22,6 @@
     "calc_end": 16,
     "regularization_coeff": 295,
     "device": "gpu",
-    "unit": "mm"
+    "unit": "mm",
+    "mesh_unit": "mm"
 }
