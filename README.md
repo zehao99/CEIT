@@ -1,10 +1,20 @@
-@[TOC]
-
 # CEIT
-
 ![logo_image](./logo.png)
 
 Package for Electric Impedance Tomography on detecting Capacitance Density
+
+# Table of Contents
+- [Overview](#overview)
+- [Requirements](#requirements)
+- [Configure the calculation](#configure-the-calculation)
+- [Quick Start](#quick-start)
+- [Read Mesh Class](#read-mesh-class)
+  - [1. Initialize a new mesh](#1-initialize-a-new-mesh)
+  - [2. Read from generated mesh cache](#2-read-from-generated-mesh-cache)
+- [Forward Simulator](#forward-simulator)
+- [Jacobian Constructor](#jacobian-constructor)
+- [Realtime Solver](#realtime-solver)
+- [How to implement your own forward model?](#how-to-implement-your-own-forward-model)
 
 ## Overview
 
