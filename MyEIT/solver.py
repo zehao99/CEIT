@@ -6,7 +6,8 @@ from .utilities import save_parameter
 from .utilities import get_config
 from .utilities import read_parameter
 from .readmesh import read_mesh_from_csv
-
+from matplotlib import patches
+import matplotlib.pyplot as plt
 
 class Solver(object):
     """
@@ -27,7 +28,7 @@ class Solver(object):
         print("Please make sure info in config.json is all correct, HERE WE GO!")
         self.config = get_config()
         self.mesh = read_mesh_from_csv()
-        self.mesh_obj, _, _, _ = self.mesh.return_mesh()
+        self.mesh_obj, _, self.electrode_center_list, self.electrode_radius = self.mesh.return_mesh()
         self.nodes = self.mesh_obj["node"]
         self.elem = self.mesh_obj["element"]
         self.point_x = self.nodes[:, 0]
@@ -150,11 +151,7 @@ class Solver(object):
         """
         NOT COMPLETED
         """
-        capacitance = self.solve(delta_V)
-        idx = np.where(capacitance == np.max(capacitance))
-        x = self.elem_param[idx][7]
-        y = self.elem_param[idx][8]
-        # Pick zone
+        pass
 
     def delete_outside_detect(self, list_c):
         """
@@ -177,6 +174,35 @@ class Solver(object):
             return new_list_c
         else:
             raise Exception("Transfer Shape Not Correct")
+    
+    def plot_map_in_detection_range(self, ax, param):
+        """
+        Plot the current capacitance map,
+
+        Args:
+            ax: matplotlib.pyplot axis class
+            param: parameter to be plotted(must match with the element)
+        Returns:
+            NULL
+        """
+        x, y = self.nodes[:, 0], self.nodes[:, 1]
+        im = ax.tripcolor(x, y, self.detection_elem, np.abs(param), shading='flat')
+        ax.set_aspect('equal')
+        radius = self.electrode_radius
+        for i, electrode_center in enumerate(self.electrode_center_list):
+            x0 = electrode_center[0] - radius
+            y0 = electrode_center[1] - radius
+            width = 2 * radius
+            ax.add_patch(
+                patches.Rectangle(
+                    (x0, y0),  # (x,y)
+                    width,  # width
+                    width,  # height
+                    color='k'
+                )
+            )
+
+        return im
 
 
 def reinitialize_solver():
@@ -189,5 +215,5 @@ def reinitialize_solver():
     config = get_config()
     if os.path.exists(config["folder_name"] + '/inv_mat.npy'):
         os.remove(config["folder_name"] + '/inv_mat.npy')
-    new_solver = Solver()
+    Solver()
 

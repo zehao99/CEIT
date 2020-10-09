@@ -7,7 +7,7 @@ import csv
 import matplotlib.pyplot as plt
 import numpy as np
 import progressbar
-
+from matplotlib import patches
 from .efem import EFEM
 from .utilities import get_config
 
@@ -349,6 +349,35 @@ class EJAC(object):
         fig.colorbar(im)
         ax.set_aspect('equal')
         plt.show()
+    
+    def plot_map_in_detection_range(self, ax, param):
+        """
+        Plot the current capacitance map,
+
+        Args:
+            ax: matplotlib.pyplot axis class
+            param: parameter to be plotted(must match with the element)
+        Returns:
+            NULL
+        """
+        x, y = self.fwd_FEM.nodes[:, 0], self.fwd_FEM.nodes[:, 1]
+        im = ax.tripcolor(x, y, self.detection_elem, np.abs(param), shading='flat')
+        ax.set_aspect('equal')
+        radius = self.fwd_FEM.electrode_radius
+        for i, electrode_center in enumerate(self.fwd_FEM.electrode_center_list):
+            x0 = electrode_center[0] - radius
+            y0 = electrode_center[1] - radius
+            width = 2 * radius
+            ax.add_patch(
+                patches.Rectangle(
+                    (x0, y0),  # (x,y)
+                    width,  # width
+                    width,  # height
+                    color='k'
+                )
+            )
+
+        return im
 
     # def Msolve_gpu(self, J, Q, lmbda, delta_V):
     #     """
