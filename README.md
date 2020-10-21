@@ -43,7 +43,7 @@ So if you don't have a beefy GPU, then please set the device option in `config.j
 ```shell
 python -m pip install -r requirements.txt
 ```
-If you have a decent GPU, install `cupy` package according to your CUDA version.
+If you have a decent GPU, install ![`cupy`](https://docs.cupy.dev/en/stable/install.html) package according to your CUDA version.
 ```shell
 python -m pip install cupy-cuda101
 ```
