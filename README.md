@@ -22,7 +22,7 @@ Package for Electric Impedance Tomography on detecting Capacitance Density
 
 This package is specifically designed to solve the tomographic problem concerned with detecting proximity map by a planar conductive sensor.
 
-For more information, please check my paper.
+For more information, please check my paper (Not online yet).
 
 The `efem.py` module is written only for this problem, other modules can be reused in any other EIT application.
 
@@ -214,10 +214,14 @@ reinitialize_solver()
 
 ## How to implement your own forward model?
 
-Check the `FEM_Basic` class and overwrite the following four method (or you can specify your own calculation).
+For typical 2D EIT problems, this package can handle all the requirements from interpreting `.fem` mesh file, assigning electrode position, generating JAC matrix to solving the problem with ease of use.
+
+With different differential equation, the FEM model is almost the same, but the core simulation algorithm has to be edited.
+
+Check the `FEM_Basic` class and overwrite the following four method (**or (I actually recommend)** you can specify your own differential equation solver from scratch since the interpolation parameter has been provided in `self.elem_param` variable).
 
 ```python
-self.construct_sparse_matrix() 
+self.construct_sparse_matrix()
 self.set_boundary_condition(electrode_input)
 self.calculate_FEM(theta)
 self.sync_back_potential()
