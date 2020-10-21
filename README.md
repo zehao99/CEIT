@@ -1,7 +1,7 @@
 # CEIT
 ![logo_image](./img/logo.png)
 
-Package for Electric Impedance Tomography on detecting Capacitance Density
+Python Package for EIT(Electric Impedance Tomography)-like method on detecting Capacitance Density Distribution.
 
 ## Table of Contents
 - [CEIT](#ceit)
