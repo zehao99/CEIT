@@ -17,10 +17,13 @@ Package for Electric Impedance Tomography on detecting Capacitance Density
   - [Jacobian Constructor](#jacobian-constructor)
   - [Realtime Solver](#realtime-solver)
   - [How to implement your own forward model?](#how-to-implement-your-own-forward-model)
+  - [Cite our work](#cite-our-work)
 
 ## Overview
 
-This package is specifically designed to solve the tomographic problem concerned with detecting proximity map by a planar conductive sensor.
+This package is designed for solving the tomographic problem concerned with detecting proximity map by a planar conductive sensor.
+
+It can also be used on other "weird" types of EIT-like problem(different differential equation compared to traditional EIT), **this package is now focusing on Gauss-Newton solver**. If you are looking into impedance problem specifically, then maybe you want to check out this [package](https://github.com/liubenyuan/pyEIT).
 
 For more information, please check my paper (Not online yet).
 
@@ -226,3 +229,7 @@ self.set_boundary_condition(electrode_input)
 self.calculate_FEM(theta)
 self.sync_back_potential()
 ```
+
+## Cite our work
+
+This package is used in our paper presented on IECON 2020 conference, if you find this package helpful, please cite our work and give it a star or even better, commit a pull request.
