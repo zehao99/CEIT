@@ -1,20 +1,22 @@
 # CEIT
-![logo_image](./logo.png)
+![logo_image](./img/logo.png)
 
 Package for Electric Impedance Tomography on detecting Capacitance Density
 
-# Table of Contents
-- [Overview](#overview)
-- [Requirements](#requirements)
-- [Configure the calculation](#configure-the-calculation)
-- [Quick Start](#quick-start)
-- [Read Mesh Class](#read-mesh-class)
-  - [1. Initialize a new mesh](#1-initialize-a-new-mesh)
-  - [2. Read from generated mesh cache](#2-read-from-generated-mesh-cache)
-- [Forward Simulator](#forward-simulator)
-- [Jacobian Constructor](#jacobian-constructor)
-- [Realtime Solver](#realtime-solver)
-- [How to implement your own forward model?](#how-to-implement-your-own-forward-model)
+## Table of Contents
+- [CEIT](#ceit)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Requirements](#requirements)
+  - [Configure the calculation](#configure-the-calculation)
+  - [Quick Start](#quick-start)
+  - [Read Mesh Class](#read-mesh-class)
+    - [1. Initialize a new mesh](#1-initialize-a-new-mesh)
+    - [2. Read from generated mesh cache](#2-read-from-generated-mesh-cache)
+  - [Forward Simulator](#forward-simulator)
+  - [Jacobian Constructor](#jacobian-constructor)
+  - [Realtime Solver](#realtime-solver)
+  - [How to implement your own forward model?](#how-to-implement-your-own-forward-model)
 
 ## Overview
 
@@ -33,6 +35,7 @@ Given the meshes and electrode positions, CEIT can generate Inverse model for an
 
 See `requirements.txt`, one thing to mention is that to accelerate the calculation process, we used GPU acceleration for matrix multiplication.
 So if you don't have a beefy GPU, then please set the device option in `config.json` to `"cpu"` and do the following things:
+
 > 1. comment out content inside function `calculate_FEM_equation()` at the end of file `./MyEIT/efem.py`.
 > 2. Add a line `pass` to the function.
 > 3. comment out `import cupy as cp` in `./MyEIT/efem.py`.
@@ -40,7 +43,7 @@ So if you don't have a beefy GPU, then please set the device option in `config.j
 ```shell
 python -m pip install -r requirements.txt
 ```
-If you have a good GPU, install `cupy` package according to your CUDA version.
+If you have a decent GPU, install `cupy` package according to your CUDA version.
 ```shell
 python -m pip install cupy-cuda101
 ```
@@ -74,14 +77,15 @@ For Examples see `config.json` file.
 | `"calc_end"` | `Number` | Set ending electrode for Jacobian calculation, for multiple instances compute usage.
 | `"regularization_coeff"` | `Number` | This parameter is used in regularization equation of reconstruction, **you will have to optimize it**.
 | `"device"` |  `String` | Calculation device, only `"cpu"` or `"gpu"` is accepted, if you choose `"cpu"` please follow the instructions in the previous paragraph.|
-| `"unit"` | `String` | Unit for the input above. Only `"mm"` or `"SI"` is accepted, they will all be transferred into SI unit, please keep the units inside mesh file and config file the same.|
-|`"mesh_unit"`| `String` |`"mm"`if mesh unit is in millimeter, if it's in SI unit, use any string.
+| `"unit"` | `String` | Unit for the input above. Only `"mm"` or `"SI"` is accepted, **they will all be transferred into SI unit**.|
+|`"mesh_unit"`| `String` |`"mm"`if mesh unit is in millimeter unit, if it's in SI unit, use any other string.
 | `"reconstruction_mode"` |`String`| DEPRECATED ITEM keep this to `"n"`|
 | `"overall_origin_capacitance"` |`Number`| DEPRECATED ITEM keep this to `0`|
 
 ## Quick Start
 
 There are some samples in the folder.
+
 * `Example_01` Initilize Mesh
 * `Example_02` Forward Calculation
 * `Example_03` Generate jacobian matrix
