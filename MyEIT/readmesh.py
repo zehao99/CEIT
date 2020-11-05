@@ -7,9 +7,9 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .utilities import get_config
-from .utilities import read_parameter
-from .utilities import save_parameter
+from .util.utilities import get_config
+from .util.utilities import read_parameter
+from .util.utilities import save_parameter
 
 """
     Call function init_mesh() to initiate mesh after making a new one

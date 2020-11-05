@@ -9,7 +9,7 @@ import numpy as np
 import progressbar
 from matplotlib import patches
 from .efem import EFEM
-from .utilities import get_config
+from MyEIT.util.utilities import get_config
 
 """
 Depend on efem.py
@@ -27,6 +27,8 @@ class EJAC(object):
                 JAC_calculation(self): Calculate and return JAC Matrix, Auto Save to File
 
                 eit_solve(self, detect_potential, lmbda): Solve inverse problems
+
+                eit_solve_delta_V(self, detect_potential_diff,lmbda)
 
                 read_JAC_np(self): Load JAC matrix from file
 
@@ -143,7 +145,14 @@ class EJAC(object):
         corres_index = []
         new_elem = []
         for i, element in enumerate(original_element):
-            if np.abs(original_x[i]) < self.detection_bound and np.abs(original_y[i]) < self.detection_bound:
+            x_val = 0
+            y_val = 0
+            for idx in element:
+                x_val += self.fwd_FEM.nodes[idx][0]
+                y_val += self.fwd_FEM.nodes[idx][1]
+            x_val /= 3
+            y_val /= 3
+            if np.abs(x_val) < self.detection_bound and np.abs(y_val) < self.detection_bound:
                 corres_index.append(i)
                 new_elem.append(element)
         self.detection_index = np.array(corres_index)

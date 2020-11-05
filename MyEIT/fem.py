@@ -1,4 +1,4 @@
-from .utilities import get_config
+from .util.utilities import get_config
 import matplotlib.patches as patches
 import numpy as np
 from abc import ABCMeta, abstractmethod
@@ -7,7 +7,27 @@ from abc import ABCMeta, abstractmethod
 class FEMBasic(metaclass=ABCMeta):
     """
     Basic class for FEM Calculation
-    Provides basic functions of doing a
+
+    Provides basic functions of doing a forward calculation.
+
+    Functions:
+                calculation(self,electrode_input): Forward Calculation
+
+                plot_potential_map: Plot the forward result
+
+                plot_current_variable: Plot the variable ground truth
+
+                change_variable_elementwise(self, element_list, variable_list): Change variable on a set of elements
+
+                change_variable_geometry(self, center, radius, value, shape): Change variable inside geometric shape
+
+                change_add_variable_geometry(self, center, radius, value, shape): Adding variable to region
+
+                change_conductivity(self, element_list, resistance_list): Change conductivity
+
+                reset_variable(self, overall_variable):Reset all variable to 0
+
+                reset_variable_to_initial(self, variable_value): DEPRECATED Reset with radius 20 square value 10e-8.46
     """
 
     def __init__(self, mesh):

@@ -2,12 +2,10 @@
 # @license: MIT
 import numpy as np
 import os
-from .utilities import save_parameter
-from .utilities import get_config
-from .utilities import read_parameter
+from .util.utilities import get_config
 from .readmesh import read_mesh_from_csv
 from matplotlib import patches
-import matplotlib.pyplot as plt
+from .models.mesh import MeshObj
 
 class Solver(object):
     """
@@ -27,16 +25,10 @@ class Solver(object):
     def __init__(self):
         print("Please make sure info in config.json is all correct, HERE WE GO!")
         self.config = get_config()
-        self.mesh = read_mesh_from_csv()
-        self.mesh_obj, _, self.electrode_center_list, self.electrode_radius = self.mesh.return_mesh()
-        self.nodes = self.mesh_obj["node"]
-        self.elem = self.mesh_obj["element"]
-        self.point_x = self.nodes[:, 0]
-        self.point_y = self.nodes[:, 1]
+        mesh_obj, electrode_num, electrode_center_list, electrode_radius = read_mesh_from_csv().return_mesh()
+        self.mesh = MeshObj(mesh_obj, electrode_num, electrode_center_list, electrode_radius)
         self.read_JAC()
-        self.elem_param = np.zeros((np.shape(self.elem)[0], 9))
-        self.initialize()
-        self.calc_detection_elements()
+        self.elem_param = np.zeros((np.shape(self.mesh.elem)[0], 9))
         if os.path.exists(self.config["folder_name"] + '/inv_mat.npy'):
             self.read_inv_matrix()
         else:
@@ -44,54 +36,15 @@ class Solver(object):
             self.get_inv_matrix()
 
     def return_mesh_info(self):
-        return self.point_x, self.point_y, self.elem, self.detection_elem
-
-    def initialize(self):
         """
-        Update parameters for each element,
 
-        Parameters used for calculating sparse matrix
-        Calculate electrodes' mesh area
-        initialize all electrode
+        Returns:
+            point_x: x axis of nodes
+            point_y: y axis of nodes
+            elem: elements with node num sets
+            detection_elem: elements inside detection area
         """
-        x = [.0, .0, .0]
-        b = [.0, .0, .0]
-        c = [.0, .0, .0]
-        y = [.0, .0, .0]
-        count = 0
-        for element in self.elem:
-
-            # change to counter clockwise
-            for i in range(3):
-                x[i] = self.nodes[element[i], 0]
-                y[i] = self.nodes[element[i], 1]
-            parameter_mat = np.array([x, y, [1, 1, 1]])
-            parameter_mat = parameter_mat.T  # Trans to vertical
-            area = np.abs(np.linalg.det(parameter_mat) / 2)
-            parameter_mat = np.linalg.inv(parameter_mat)  # get interpolation parameters
-            parameter_mat = parameter_mat.T
-            b = list(parameter_mat[:, 0])
-            c = list(parameter_mat[:, 1])
-            x_average = np.mean(x)  # get center point coordinate
-            y_average = np.mean(y)
-            self.elem_param[count] = [area, b[0], b[1], b[2], c[0], c[1], c[2], x_average, y_average]
-            count += 1
-
-    def calc_detection_elements(self):
-        """
-        Get elements whose center is inside detection range
-        """
-        original_element = self.elem
-        original_x = self.elem_param[:, 7]
-        original_y = self.elem_param[:, 8]
-        corres_index = []
-        new_elem = []
-        for i, element in enumerate(original_element):
-            if np.abs(original_x[i]) < self.config["detection_bound"] and np.abs(original_y[i]) < self.config["detection_bound"]:
-                corres_index.append(i)
-                new_elem.append(element)
-        self.detection_index = np.array(corres_index)
-        self.detection_elem = np.array(new_elem)
+        return self.mesh.point_x, self.mesh.point_y, self.mesh.elem, self.mesh.detection_elem
 
     def read_JAC(self):
         """
@@ -106,7 +59,7 @@ class Solver(object):
         """
         orig_JAC = np.copy(self.JAC_mat.T)
         new_JAC = []
-        for j in self.detection_index:
+        for j in self.mesh.detection_index:
             new_JAC.append(orig_JAC[j, :])
         new_JAC = np.array(new_JAC)
         # save_parameter(new_JAC,'detect_JAC')
@@ -152,28 +105,6 @@ class Solver(object):
         NOT COMPLETED
         """
         pass
-
-    def delete_outside_detect(self, list_c):
-        """
-        Args:
-            list_c : an all-element-wise list
-
-        Returns:
-             elements remained in detection domain
-        """
-        list_c = np.array(list_c)
-        if list_c.ndim > 1:
-            new_list_c = np.zeros((self.detection_index.shape[0], list_c.shape[1]))
-            for i, j in enumerate(self.detection_index):
-                new_list_c[i] = list_c[j]
-            return new_list_c
-        elif list_c.ndim == 1:
-            new_list_c = np.zeros((self.detection_index.shape[0]))
-            for i, j in enumerate(self.detection_index):
-                new_list_c[i] = list_c[j]
-            return new_list_c
-        else:
-            raise Exception("Transfer Shape Not Correct")
     
     def plot_map_in_detection_range(self, ax, param):
         """
@@ -185,11 +116,11 @@ class Solver(object):
         Returns:
             NULL
         """
-        x, y = self.nodes[:, 0], self.nodes[:, 1]
-        im = ax.tripcolor(x, y, self.detection_elem, np.abs(param), shading='flat')
+        x, y = self.mesh.nodes[:, 0], self.mesh.nodes[:, 1]
+        im = ax.tripcolor(x, y, self.mesh.detection_elem, np.abs(param), shading='flat')
         ax.set_aspect('equal')
-        radius = self.electrode_radius
-        for i, electrode_center in enumerate(self.electrode_center_list):
+        radius = self.mesh.electrode_radius
+        for i, electrode_center in enumerate(self.mesh.electrode_center_list):
             x0 = electrode_center[0] - radius
             y0 = electrode_center[1] - radius
             width = 2 * radius
