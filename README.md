@@ -173,7 +173,8 @@ jac_calc = EJAC(mesh_obj)
 jac_calc.JAC_calculation()
 ```
 
-If you had set the value `"is_first_JAC_calculation"` inside `config.json` file to `true`, then, if you call method `EJAC.JAC_calculation()`, it will start calculating the jacobianmatrix starting from electrode `"calc_from"` to `"calc_end"`
+If you had set the value `"is_first_JAC_calculation"` inside `config.json` file to `true`, then, if you call method `EJAC.JAC_calculation()`
+, it will start calculating the jacobianmatrix starting from electrode `"calc_from"` to `"calc_end"`.
 This allows you to calculate the jacobian matrix on different machines and then combine them together.
 After one iteration (an electrode input condition), the function saves JAC matrix to cache file `JAC_cache.npy`.
 
@@ -221,14 +222,8 @@ For typical 2D EIT problems, this package can handle all the requirements from i
 
 With different differential equation, the FEM model is almost the same, but the core simulation algorithm has to be edited.
 
-Check the `FEM_Basic` class and overwrite the following four method (**or (I actually recommend)** you can specify your own differential equation solver from scratch since the interpolation parameter has been provided in `self.elem_param` variable).
-
-```python
-self.construct_sparse_matrix()
-self.set_boundary_condition(electrode_input)
-self.calculate_FEM(theta)
-self.sync_back_potential()
-```
+Check the `FEMBasic` class and `EFEM` class, `FEMBasic` class is an abstract class whose `my_solver` function is an abstract method.
+Override this method to get your own forward simulator.
 
 ## Cite our work
 

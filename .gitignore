@@ -7,3 +7,4 @@ venv/
 .vscode/
 .idea/
 MESH_TEST/
+*.pyc
