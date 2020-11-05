@@ -8,5 +8,6 @@ venv/
 .idea/
 MESH_TEST/
 *.pyc
-
+test/test_ejac.py
 test/
+t.py

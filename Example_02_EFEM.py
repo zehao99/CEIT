@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
-from MyEIT.efem import EFEM
+from MyEIT.EFEM import EFEM
 from MyEIT.readmesh import read_mesh_from_csv
+from MyEIT.models.mesh import MeshObj
 
 """ Read mesh from csv files(after initialization) """
 read_mesh = read_mesh_from_csv()
@@ -8,7 +9,8 @@ mesh_obj, electrode_num, electrode_centers, radius = read_mesh.return_mesh()
 
 # extract node, element, alpha
 """ problem setup """
-fwd = EFEM(mesh_obj)
+mesh = MeshObj(mesh_obj, electrode_num, electrode_centers, radius)
+fwd = EFEM(mesh)
 
 obj_x = -20  # object x position
 obj_y = -10  # object y position

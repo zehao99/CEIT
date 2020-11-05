@@ -7,12 +7,13 @@ import csv
 import matplotlib.pyplot as plt
 import numpy as np
 import progressbar
-from matplotlib import patches
-from .efem import EFEM
-from MyEIT.util.utilities import get_config
+from .models.mesh import MeshObj
+from .EFEM import EFEM
+from .util.utilities import get_config
+from .EITPlotter import EITPlotter
 
 """
-Depend on efem.py
+Depend on EFEM.py
 """
 
 
@@ -45,15 +46,17 @@ class EJAC(object):
                 plot_sensitivity(self, area_normalization = True): Plot sensitivity map (Sum of columns in JAC_Matrix)
     """
 
-    def __init__(self, mesh):
+    def __init__(self, mesh=None):
         """
         Prepare for calculation,
 
         Args:
-            mesh : DICT element mesh See readmesh.py
-
+            mesh : MeshObj class
         """
-
+        if mesh is None:
+            self.mesh = MeshObj()
+        else:
+            self.mesh = mesh
         self.config = get_config()
         self.mode = 'n'
         self.first = self.config["is_first_JAC_calculation"]
@@ -63,14 +66,12 @@ class EJAC(object):
         # Set overall permitivity as the conductive sheet
         permi = 1 / 10000
         self.electrode_centers = self.config["electrode_centers"]
-        self.fwd_FEM = EFEM(mesh)
+        self.fwd_FEM = EFEM(self.mesh)
         self.electrode_num = len(self.electrode_centers)
         # Initialize Matrix
         self.pattern_num = self.electrode_num * (self.electrode_num - 1)
         self.elem_num = self.fwd_FEM.elem_num
         self.electrode_original_potential = np.zeros((self.pattern_num))
-        # Choose detection_area
-        self.calc_detection_elements()
         self.JAC_matrix = np.zeros((self.pattern_num, self.elem_num))
         if self.mode == 'n':
             self.fwd_FEM.reset_variable(overall_variable=self.overall_variable)  # Set overall initial value
@@ -79,6 +80,7 @@ class EJAC(object):
         else:
             raise Exception('No Such Mode, Please check.')
         self.initial_variable = np.copy(self.fwd_FEM.elem_variable)
+        self.plotter = EITPlotter(self.fwd_FEM.mesh)
         self.calc_origin_potential()
 
     def calc_origin_potential(self):
@@ -135,36 +137,13 @@ class EJAC(object):
             self.read_JAC_np()
             return self.JAC_matrix
 
-    def calc_detection_elements(self):
-        """
-        Calculate elements inside the dectection area specified
-        """
-        original_element = self.fwd_FEM.elem
-        original_x = self.fwd_FEM.elem_param[:, 7]
-        original_y = self.fwd_FEM.elem_param[:, 8]
-        corres_index = []
-        new_elem = []
-        for i, element in enumerate(original_element):
-            x_val = 0
-            y_val = 0
-            for idx in element:
-                x_val += self.fwd_FEM.nodes[idx][0]
-                y_val += self.fwd_FEM.nodes[idx][1]
-            x_val /= 3
-            y_val /= 3
-            if np.abs(x_val) < self.detection_bound and np.abs(y_val) < self.detection_bound:
-                corres_index.append(i)
-                new_elem.append(element)
-        self.detection_index = np.array(corres_index)
-        self.detection_elem = np.array(new_elem)
-
     def eliminate_non_detect_JAC(self):
         """
         Eliminate the rows inside JAC Matrix where element is not used in detection area
         """
         orig_JAC = np.copy(self.JAC_matrix.T)
         new_JAC = []
-        for j in self.detection_index:
+        for j in self.fwd_FEM.mesh.detection_index:
             new_JAC.append(orig_JAC[j, :])
         new_JAC = np.array(new_JAC)
         # save_parameter(new_JAC,'detect_JAC')
@@ -255,14 +234,14 @@ class EJAC(object):
         J = self.eliminate_non_detect_JAC() - 1
         Q = np.eye(J.shape[1])
         JAC_inv = np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T)
-        np.save(self.config["folder_name"] + '/inv_mat.npy', JAC_inv)
+        np.save(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\inv_mat.npy', JAC_inv)
 
     def read_inv_matrix(self):
         """
         Load inverse matrix from inv_mat.npy
         """
 
-        return np.load(self.config["folder_name"] + '/inv_mat.npy')
+        return np.load(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\inv_mat.npy')
 
     def eit_solve_direct(self, detect_potential):
         """
@@ -277,19 +256,19 @@ class EJAC(object):
         """
         save JAC matrix to JAC_cache.npy
         """
-        np.save(self.config["folder_name"] + '/' + 'JAC_cache.npy', self.JAC_matrix)
+        np.save(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\JAC_cache.npy', self.JAC_matrix)
 
     def read_JAC_np(self):
         """
         read JAC matrix to JAC_cache.npy
         """
-        self.JAC_matrix = np.load(self.config["folder_name"] + '/' + 'JAC_cache.npy')
+        self.JAC_matrix = np.load(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\JAC_cache.npy')
 
     def save_JAC_2file(self):
         """
         Save jacobian matrix to csv file
         """
-        with open(self.config["folder_name"] + '/' + 'jac_cache.csv', "w", newline='') as csvfile:
+        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\jac_cache.csv', "w", newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             for row in self.JAC_matrix:
                 writer.writerow(row)
@@ -299,13 +278,7 @@ class EJAC(object):
         Read jacobian matrix from csv file
         """
         if mode == 'normal':
-            with open(self.config["folder_name"] + '/' + 'jac_cache.csv', newline='') as csvfile:
-                reader = csv.reader(csvfile, delimiter=',')
-                for i, line in enumerate(reader):
-                    self.JAC_matrix[i] = line
-        elif mode == 'sudoku':
-            self.JAC_matrix = np.zeros((self.pattern_num, 9))
-            with open(self.config["folder_name"] + '/' + 'jac_cache.csv', newline='') as csvfile:
+            with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\jac_cache.csv', newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',')
                 for i, line in enumerate(reader):
                     self.JAC_matrix[i] = line
@@ -335,35 +308,16 @@ class EJAC(object):
         sensitivity = self.get_sensitivity_list()
         self.JAC_matrix = self.JAC_matrix / sensitivity.T * np.mean(sensitivity)
 
-    def delete_outside_detect(self, list_c):
-        """
-        Input a all-element-wise list
-        Return elements remained in detection domain
-        """
-        list_c = np.array(list_c)
-        if list_c.ndim > 1:
-            new_list_c = np.zeros((self.detection_index.shape[0], list_c.shape[1]))
-            for i, j in enumerate(self.detection_index):
-                new_list_c[i] = list_c[j]
-            return new_list_c
-        elif list_c.ndim == 1:
-            new_list_c = np.zeros((self.detection_index.shape[0]))
-            for i, j in enumerate(self.detection_index):
-                new_list_c[i] = list_c[j]
-            return new_list_c
-        else:
-            raise Exception("Transfer Shape Not Correct")
-
     def plot_sensitivity(self, area_normalization=True):
         """
         Plot sensitivity map
         """
         if area_normalization:
-            sensitivity = self.get_sensitivity_list() / self.fwd_FEM.elem_param[:, 0]
+            sensitivity = self.get_sensitivity_list() / self.fwd_FEM.mesh.elem_param[:, 0]
         else:
             sensitivity = self.get_sensitivity_list()
-        points = self.fwd_FEM.nodes
-        tri = self.fwd_FEM.elem
+        points = self.fwd_FEM.mesh.nodes
+        tri = self.fwd_FEM.mesh.elem
         x, y = points[:, 0], points[:, 1]
         fig, ax = plt.subplots(figsize=(6, 4))
         im = ax.tripcolor(x, y, tri, sensitivity, shading='flat')
@@ -371,32 +325,18 @@ class EJAC(object):
         ax.set_aspect('equal')
         plt.show()
     
-    def plot_map_in_detection_range(self, ax, param):
+    def plot_map_in_detection_range(self, param, ax):
         """
         Plot the current variable map,
 
         Args:
-            ax: matplotlib.pyplot axis class
             param: parameter to be plotted(must match with the element)
+            ax: matplotlib.pyplot axis class
         Returns:
             NULL
         """
-        x, y = self.fwd_FEM.nodes[:, 0], self.fwd_FEM.nodes[:, 1]
-        im = ax.tripcolor(x, y, self.detection_elem, np.abs(param), shading='flat')
-        ax.set_aspect('equal')
-        radius = self.fwd_FEM.electrode_radius
-        for i, electrode_center in enumerate(self.fwd_FEM.electrode_center_list):
-            x0 = electrode_center[0] - radius
-            y0 = electrode_center[1] - radius
-            width = 2 * radius
-            ax.add_patch(
-                patches.Rectangle(
-                    (x0, y0),  # (x,y)
-                    width,  # width
-                    width,  # height
-                    color='k'
-                )
-            )
+
+        im = self.plotter.plot_detection_area_map(param, ax)
 
         return im
 

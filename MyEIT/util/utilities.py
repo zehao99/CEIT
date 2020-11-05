@@ -3,17 +3,19 @@ import numpy as np
 import pickle
 from json import loads
 import csv
-
+import os
 
 def get_config():
     """
     Get info in the config.json file
     and turn all data to SI units
     """
-    with open('./config.json', 'r', encoding='utf-8') as f:
+    path = os.path.dirname(os.path.realpath(__file__))
+    path = os.path.dirname(os.path.dirname(path))
+    with open(path+'\\config.json', 'r', encoding='utf-8') as f:
         config = loads(f.read())
     assert config["unit"] == "mm" or config["unit"] == "SI", "Please enter the accurate unit."
-
+    config["rootdir"] = path
     if config["unit"] == "mm":
         config["electrode_centers"] = list(np.array(config["electrode_centers"]) / 1000)
         config["electrode_radius"] = config["electrode_radius"] / 1000
@@ -28,23 +30,23 @@ def save_parameter(param, filename, path_name="."):
     Args:
         param: parameter to save
         filename: filename of the destination without suffix ".pkl" example: "mesh_cache"
-        path_name: path name of the destination example: "./MESH"
+        path_name: path name of the destination example: such as path = os.path.dirname(os.path.realpath(__file__))
     """
-    with open(path_name + "/" + 'cache_' + filename + '.pkl', "wb") as file:
+    with open(path_name + "\\" + 'cache_' + filename + '.pkl', "wb") as file:
         pickle.dump(param, file)
 
 
-def read_parameter(filename, path_name="."):
+def read_parameter(filename: object, path_name: object = ".") -> object:
     """
     Read from .pkl file Use this only with the save_parameter() utility !IMPORTANT,
 
     Args:
         filename: filename of the destination with suffix example: "aaa.csv"
-        path_name: path name of the destination example: "./MESH"
+        path_name: absolute path name of the destination example: such as path = os.path.dirname(os.path.realpath(__file__))
     Returns:
         data: data in the file
     """
-    with open(path_name + "/" + 'cache_' + filename + '.pkl', 'rb') as file:
+    with open(path_name + "\\" + 'cache_' + filename + '.pkl', 'rb') as file:
         param = pickle.load(file)
     return param
 

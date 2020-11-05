@@ -6,6 +6,7 @@ import numpy as np
 class MeshObj(object):
 
     def __init__(self, mesh_obj=None, electrode_num=None, electrode_center_list=None, electrode_radius=None):
+        self.electrode_mesh = dict()
         if mesh_obj is None or electrode_num is None or electrode_center_list is None or electrode_radius is None:
             mesh_obj, electrode_num, electrode_center_list, electrode_radius = read_mesh_from_csv().return_mesh()
         self.config = get_config()
@@ -17,10 +18,12 @@ class MeshObj(object):
         self.point_x = self.nodes[:, 0]
         self.point_y = self.nodes[:, 1]
         self.elem = self.mesh_obj["element"]
-        self.perm = self.mesh_obj["perm"]
+        self.elem_perm = self.mesh_obj["perm"]
         self.detection_index = np.zeros((len(self.elem)))
         self.detection_elem = np.copy(self.elem)
         self.elem_param = np.zeros((np.shape(self.elem)[0], 9))
+        for i in range(self.electrode_num):
+            self.electrode_mesh[i] = list()
         self.initialize_parameters()
         self.calc_detection_elements()
 
@@ -54,6 +57,33 @@ class MeshObj(object):
             y_average = np.mean(y)
             self.elem_param[count] = [area, b[0], b[1], b[2], c[0], c[1], c[2], x_average, y_average]
             count += 1
+        for i in range(self.electrode_num):
+            center = self.electrode_center_list[i]
+            self.calc_electrode_elements(i, center, self.electrode_radius)
+
+    def calc_electrode_elements(self, electrode_number, center, radius):
+        """
+        Get the electrode element sets for every electrode,
+
+        According to the SQUARE area given and put values into electrode_mesh dict
+
+        Parameters:
+                    electrode_number: INT current electrode number
+                    center: [FLOAT,FLOAT] center of electrode
+                    radius: FLOAT half side length of electrode
+        """
+        if electrode_number >= self.electrode_num:
+            raise Exception("the input number exceeded electrode numbers")
+        else:
+            center_x, center_y = center
+            count = 0
+            for i, x in enumerate(self.elem_param[:, 7]):
+                if (center_x + radius) >= x >= (center_x - radius) and (
+                        center_y + radius) >= self.elem_param[i][8] >= (center_y - radius):
+                    self.electrode_mesh[electrode_number].append(i)
+                    count += 1
+            if count == 0:
+                raise Exception("No element is selected, please check the input")
 
     def return_mesh(self):
         return self.mesh_obj

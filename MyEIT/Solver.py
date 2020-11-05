@@ -22,7 +22,7 @@ class Solver(object):
         solve(): solver you should call
     """
 
-    def __init__(self):
+    def __init__(self, lmbda=289):
         print("Please make sure info in config.json is all correct, HERE WE GO!")
         self.config = get_config()
         mesh_obj, electrode_num, electrode_center_list, electrode_radius = read_mesh_from_csv().return_mesh()
@@ -33,7 +33,7 @@ class Solver(object):
             self.read_inv_matrix()
         else:
             self.read_JAC()
-            self.get_inv_matrix()
+            self.get_inv_matrix(lmbda)
 
     def return_mesh_info(self):
         """
@@ -50,8 +50,8 @@ class Solver(object):
         """
         Read JAC matrix from file
         """
-        assert os.path.exists(self.config["folder_name"] + '/' + 'JAC_cache.npy'), "The JAC matrix is not generated"
-        self.JAC_mat = np.load(self.config["folder_name"] + '/' + 'JAC_cache.npy')
+        assert os.path.exists(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + 'JAC_cache.npy'), "The JAC matrix is not generated"
+        self.JAC_mat = np.load(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + 'JAC_cache.npy')
 
     def eliminate_non_detect_JAC(self):
         """
@@ -69,7 +69,7 @@ class Solver(object):
         """
         Read Inverse matrix cache
         """
-        self.inv_mat = np.load(self.config["folder_name"] + '/inv_mat.npy')
+        self.inv_mat = np.load(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + 'inv_mat.npy')
 
     def solve(self, delta_V):
         """
@@ -86,7 +86,7 @@ class Solver(object):
         variable_predict = np.dot(self.inv_mat, delta_V)
         return variable_predict
 
-    def get_inv_matrix(self, lmbda=203):
+    def get_inv_matrix(self, lmbda=289):
         """
         Calculate and save inverse matrix according to lmbda
 
@@ -98,7 +98,7 @@ class Solver(object):
         J = self.eliminate_non_detect_JAC() - 1
         Q = np.eye(J.shape[1])
         self.inv_mat = np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T)
-        np.save(self.config["folder_name"] + '/inv_mat.npy', self.inv_mat)
+        np.save(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\"+ 'inv_mat.npy', self.inv_mat)
 
     def adaptive_solver(self, delta_V):
         """
@@ -136,15 +136,16 @@ class Solver(object):
         return im
 
 
-def reinitialize_solver():
+def reinitialize_solver(lmbda=0):
     """
     Reinitialize EIT solver,
 
     Deletes the inv_mat.npy file and regenerate it.
 
     """
+    assert (lmbda > 0), "Please enter a positive lmbda parameter"
     config = get_config()
-    if os.path.exists(config["folder_name"] + '/inv_mat.npy'):
-        os.remove(config["folder_name"] + '/inv_mat.npy')
-    Solver()
+    if os.path.exists(config["rootdir"] + "\\" + config["folder_name"] + "\\" + 'inv_mat.npy'):
+        os.remove(config["rootdir"] + "\\" + config["folder_name"] + "\\" + 'inv_mat.npy')
+    Solver(lmbda)
 

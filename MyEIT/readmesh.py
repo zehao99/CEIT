@@ -31,7 +31,7 @@ def string_to_float(input_num):
     return out
 
 
-class readmesh(object):
+class ReadMesh(object):
     """
     DO NOT DIRECTLY USE THIS CLASS
 
@@ -46,7 +46,7 @@ class readmesh(object):
         self.nodes = []
         self.elements = []
         self.folder_name = folder_name
-        with open(self.folder_name + '/' + filename, newline="") as file:
+        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + filename, newline="") as file:
             for line in file:
                 if line.find("GRID") != -1 and line.find("$") == -1:
                     x = string_to_float(line[24:32].rstrip())
@@ -63,6 +63,7 @@ class readmesh(object):
         self.electrode_num = len(self.electrode_centers)
         self.electrode_radius = electrode_radius  # end of electrode info
         if not is_SI:
+            # turn mm unit to SI unit
             self.nodes = list(np.array(self.nodes) / 1000)
         self.clean_mesh()
         if optimize_node_num:
@@ -153,18 +154,18 @@ class readmesh(object):
             return - np.arccos(x / r) + 2 * np.pi
 
     def output(self, file_name='Mesh_Cache'):
-        with open(self.folder_name + '/' + file_name + '_Node.csv', mode='w', newline='') as outfile:
+        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + file_name + '_Node.csv', mode='w', newline='') as outfile:
             data_writer = csv.writer(outfile, delimiter=',')
             for node in self.nodes:
                 data_writer.writerow(node)
-        with open(self.folder_name + '/' + file_name + '_Element.csv', mode='w', newline='') as outfile_2:
+        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + file_name + '_Element.csv', mode='w', newline='') as outfile_2:
             data_writer_2 = csv.writer(outfile_2, delimiter=',')
             for element in self.elements:
                 data_writer_2.writerow(element)
 
     def out_2pkl(self, filename='Mesh_'):
-        save_parameter(self.nodes, filename + 'nodes', self.folder_name)
-        save_parameter(self.elements, filename + 'elements', self.folder_name)
+        save_parameter(self.nodes, filename + 'nodes', self.config["rootdir"] + "\\" + self.config["folder_name"])
+        save_parameter(self.elements, filename + 'elements',  self.config["rootdir"] + "\\" + self.config["folder_name"])
 
 
 class read_mesh_from_csv(object):
@@ -181,13 +182,13 @@ class read_mesh_from_csv(object):
         if mode == 'csv':
             self.nodes = []
             self.elements = []
-            with open(self.folder_name + '/' + name + '_Node.csv', newline='') as datafile:
+            with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\' + name + '_Node.csv', newline='') as datafile:
                 csv_reader = csv.reader(datafile, delimiter=',')
                 for line in csv_reader:
                     if line:
                         line = [float(x) for x in line]
                         self.nodes.append(line)
-            with open(self.folder_name + '/' + name + '_Element.csv', newline='') as datafile_2:
+            with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\' + name + '_Element.csv', newline='') as datafile_2:
                 csv_reader_2 = csv.reader(datafile_2, delimiter=',')
                 for line in csv_reader_2:
                     if line:
@@ -203,8 +204,8 @@ class read_mesh_from_csv(object):
         self.electrode_radius = self.config["electrode_radius"]
 
     def read_from_pkl(self, filename='Mesh_'):
-        self.nodes = read_parameter(filename + 'nodes', self.folder_name)
-        self.elements = read_parameter(filename + 'elements', self.folder_name)
+        self.nodes = read_parameter(filename + 'nodes', self.config["rootdir"] + "\\" + self.config["folder_name"])
+        self.elements = read_parameter(filename + 'elements', self.config["rootdir"] + "\\" + self.config["folder_name"])
 
     def return_mesh(self):
         """
@@ -213,7 +214,8 @@ class read_mesh_from_csv(object):
         """
         element_num = len(self.elements)
         if self.config["mesh_unit"] == "mm":
-            mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes) / 1000, 'perm': np.ones(element_num)}
+            mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes) / 1000,
+                        'perm': np.ones(element_num)}
         else:
             mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes), 'perm': np.ones(element_num)}
         return mesh_obj, self.electrode_num, self.electrode_centers, self.electrode_radius
@@ -230,8 +232,8 @@ def init_mesh(draw=False):
     folder_name = config["folder_name"]
     optimize_node_num = config["optimize_node_num"]
     shuffle_element = config["shuffle_element"]
-    is_SI = config["unit"] == "SI"
-    read_mesh = readmesh(filename, electrode_centers, electrode_radius, folder_name, optimize_node_num, shuffle_element,
+    is_SI = config["mesh_unit"] == "SI"
+    read_mesh = ReadMesh(filename, electrode_centers, electrode_radius, folder_name, optimize_node_num, shuffle_element,
                          is_SI=is_SI)
     mesh_obj, electrode_num, electrode_centers, electrode_radius = read_mesh.return_mesh()
     if draw:
@@ -280,11 +282,11 @@ def draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius):
     plt.show()
 
 
-def demo2():
+def demo_mesh():
     read_mesh = read_mesh_from_csv()
     mesh_obj, electrode_num, electrode_centers, electrode_radius = read_mesh.return_mesh()
     draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius)
 
 
 if __name__ == "__main__":
-    demo2()
+    demo_mesh()

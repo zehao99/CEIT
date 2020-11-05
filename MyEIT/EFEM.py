@@ -3,7 +3,7 @@
 import math
 import cupy as cp
 import numpy as np
-from .fem import FEMBasic
+from .FEMBasic import FEMBasic
 
 
 class EFEM(FEMBasic):
@@ -52,18 +52,18 @@ class EFEM(FEMBasic):
         K_ij = 0 + 0j
         pattern = [[0, 0], [1, 1], [2, 2], [0, 1], [1, 2], [2, 0], [1, 0], [2, 1],
                    [0, 2]]  # go through every combination of k1 and k2
-        for element in self.elem:
-            param = self.elem_param[index]
+        for element in self.mesh.elem:
+            param = self.mesh.elem_param[index]
             for i, j in pattern:
                 if i != j:
                     # stiffness k_ij = sigma * (bk1*bk2 + ck1*ck2)/(4 * area) - j * w * variable * (bk1 * ck2 -
                     # bk2 * ck1) /24
-                    K_ij = self.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
+                    K_ij = self.mesh.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
                             1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 12) * 1j
                     self.K_sparse[element[i]][element[j]] += K_ij
                     self.K_sparse[element[j]][element[i]] += K_ij
                 else:
-                    K_ij = self.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
+                    K_ij = self.mesh.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
                             1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 6) * 1j
                     self.K_sparse[element[i]][element[j]] += K_ij
                     self.K_sparse[element[j]][element[i]] += K_ij
@@ -79,11 +79,11 @@ class EFEM(FEMBasic):
         And swap the index of matrix put the boundary elements at the bottom of the sparse matrix
         """
         node_list = []  # reshape all nodes to 1D
-        electrode_list = list(self.electrode_mesh.values())
+        electrode_list = list(self.mesh.electrode_mesh.values())
         for element in electrode_list[electrode_input]:
-            node_list.append(self.elem[element][0])
-            node_list.append(self.elem[element][1])
-            node_list.append(self.elem[element][2])
+            node_list.append(self.mesh.elem[element][0])
+            node_list.append(self.mesh.elem[element][1])
+            node_list.append(self.mesh.elem[element][2])
         node_list = np.array(node_list)
         node_list = list(np.unique(node_list))  # get rid of repeat numbers
         index = self.node_num
