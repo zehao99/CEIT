@@ -56,7 +56,7 @@ class EJAC(object):
         self.mode = 'n'
         self.first = self.config["is_first_JAC_calculation"]
         self.detection_bound = self.config["detection_bound"]
-        self.overall_capacitance = self.config["overall_origin_capacitance"]
+        self.overall_variable = self.config["overall_origin_variable"]
         # Create FEM class
         # Set overall permitivity as the conductive sheet
         permi = 1 / 10000
@@ -71,12 +71,12 @@ class EJAC(object):
         self.calc_detection_elements()
         self.JAC_matrix = np.zeros((self.pattern_num, self.elem_num))
         if self.mode == 'n':
-            self.fwd_FEM.reset_capacitance(overall_capa=self.overall_capacitance)  # Set overall initial value
+            self.fwd_FEM.reset_variable(overall_variable=self.overall_variable)  # Set overall initial value
         elif self.mode == 'i':
-            self.fwd_FEM.reset_capa_to_initial(0)  # Set initial value
+            self.fwd_FEM.reset_variable_to_initial(0)  # Set initial value
         else:
             raise Exception('No Such Mode, Please check.')
-        self.initial_capacitance = np.copy(self.fwd_FEM.elem_capacitance)
+        self.initial_variable = np.copy(self.fwd_FEM.elem_variable)
         self.calc_origin_potential()
 
     def calc_origin_potential(self):
@@ -101,7 +101,7 @@ class EJAC(object):
         """
         calc_from = self.config["calc_from"]
         calc_end = self.config["calc_end"]
-        capacitance_change = self.config["capacitance_change_for_JAC"]
+        variable_change = self.config["variable_change_for_JAC"]
         if self.first:
             if calc_from > 0:
                 self.read_JAC_np()
@@ -116,15 +116,15 @@ class EJAC(object):
                 print("iteration: " + str(
                     i) + "     If you want to break, press Ctrl + C. But REMEMBER THIS iteration num!")
                 for j in progressbar.progressbar(range(self.elem_num)):
-                    # capacitance change in JAC
-                    self.fwd_FEM.elem_capacitance[j] += capacitance_change
+                    # variable change in JAC
+                    self.fwd_FEM.elem_variable[j] += variable_change
                     _, _, electrode_potential = self.fwd_FEM.calculation(i)
                     count = 0
                     for m in range(self.electrode_num):
                         if m != i:
                             self.JAC_matrix[i * (self.electrode_num - 1) + count][j] = np.abs(electrode_potential[m])
                             count += 1
-                    self.fwd_FEM.elem_capacitance[j] -= capacitance_change
+                    self.fwd_FEM.elem_variable[j] -= variable_change
             # Minus and broadcast original value calculate differiential value
             self.save_JAC_np()
             print('Congrats! You made it!')
@@ -172,10 +172,10 @@ class EJAC(object):
         Q = np.eye(J.shape[1])  # * area_list
         # Q = np.diag(np.dot(J.T,J))
         delta_V = detect_potential - np.copy(self.electrode_original_potential)
-        capacitance_predict = np.dot(np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V)
-        # capacitance_predict = self.Msolve_gpu(J, Q, lmbda, delta_V)
+        variable_predict = np.dot(np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V)
+        # variable_predict = self.Msolve_gpu(J, Q, lmbda, delta_V)
         # self.plot_potential(delta_V, orig_ratio = 0)
-        return capacitance_predict
+        return variable_predict
 
     def eit_solve_delta_V(self, delta_V, lmbda=295):
         """
@@ -185,9 +185,9 @@ class EJAC(object):
         """
         J = self.eliminate_non_detect_JAC()
         Q = np.eye(J.shape[1])  # * area_list
-        capacitance_predict = np.dot(np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V)
-        # capacitance_predict = self.Msolve_gpu(J, Q, lmbda, delta_V)
-        return capacitance_predict
+        variable_predict = np.dot(np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V)
+        # variable_predict = self.Msolve_gpu(J, Q, lmbda, delta_V)
+        return variable_predict
 
     def eit_solve_4electrodes(self, detect_potential, lmbda=90):
         return self.eit_solve_on_some_electrodes([2, 6, 10, 14], detect_potential, lmbda, mode="direct")
@@ -202,6 +202,18 @@ class EJAC(object):
         return self.eit_solve_on_some_electrodes([0, 2, 4, 6, 8, 10, 12, 14], delta_V, lmbda, mode="diff")
 
     def eit_solve_on_some_electrodes(self, electrode_list, potential, lmbda, mode="diff"):
+        """
+            Template for solving problem on some electrodes
+
+            Args:
+                electrode_list: electrode chosen
+                potential: potential data
+                lmbda: regularization parameters
+                mode: solving the problem with difference of amplitude or amplitude raw data.
+
+            Returns:
+
+        """
         assert mode == "diff" or mode == "direct", "Please enter the right solver mode"
         slice_list = []
         for i in electrode_list:
@@ -220,8 +232,8 @@ class EJAC(object):
             delta_V = np.copy(delta_V[slice_list])
         else:
             delta_V = potential
-        capacitance_predict = np.dot(np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V) * 1e-4
-        return capacitance_predict
+        variable_predict = np.dot(np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V) * 1e-4
+        return variable_predict
 
     def save_inv_matrix(self, lmbda=203):
         """
@@ -249,8 +261,8 @@ class EJAC(object):
         """
         JAC_p = self.read_inv_matrix()
         delta_V = detect_potential - np.copy(self.electrode_original_potential)
-        capacitance_predict = np.dot(JAC_p, delta_V)
-        return capacitance_predict
+        variable_predict = np.dot(JAC_p, delta_V)
+        return variable_predict
 
     def save_JAC_np(self):
         """
@@ -352,7 +364,7 @@ class EJAC(object):
     
     def plot_map_in_detection_range(self, ax, param):
         """
-        Plot the current capacitance map,
+        Plot the current variable map,
 
         Args:
             ax: matplotlib.pyplot axis class
@@ -387,6 +399,6 @@ class EJAC(object):
     #     J_g_T = cp.asarray(J.T)
     #     Q_g = cp.asarray(Q)
     #     delta_V_g = cp.asarray(delta_V)
-    #     capacitance_predict = cp.dot(cp.dot(cp.linalg.inv(cp.dot(J_g_T, J_g) + lmbda ** 2 * Q_g), J_g_T), delta_V_g)
-    #     capacitance_predict = cp.asnumpy(capacitance_predict)
-    #     return capacitance_predict
+    #     variable_predict = cp.dot(cp.dot(cp.linalg.inv(cp.dot(J_g_T, J_g) + lmbda ** 2 * Q_g), J_g_T), delta_V_g)
+    #     variable_predict = cp.asnumpy(variable_predict)
+    #     return variable_predict

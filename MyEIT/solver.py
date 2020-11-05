@@ -121,17 +121,17 @@ class Solver(object):
     def solve(self, delta_V):
         """
         Realtime solver,
-        Get the capacitance map according to delta_V Change
+        Get the variable map according to delta_V Change
 
         Args:
             delta_V: voltage change on every dimensions the dimension should be (elec_num - 1) * elec_num
 
         Returns:
-            capacitance density prediction inside detection area.
+            variable density prediction inside detection area.
         """
 
-        capacitance_predict = np.dot(self.inv_mat, delta_V)
-        return capacitance_predict
+        variable_predict = np.dot(self.inv_mat, delta_V)
+        return variable_predict
 
     def get_inv_matrix(self, lmbda=203):
         """
@@ -177,7 +177,7 @@ class Solver(object):
     
     def plot_map_in_detection_range(self, ax, param):
         """
-        Plot the current capacitance map,
+        Plot the current variable map,
 
         Args:
             ax: matplotlib.pyplot axis class

@@ -1,7 +1,7 @@
 # CEIT
 ![logo_image](./img/logo.png)
 
-Python Package for EIT(Electric Impedance Tomography)-like method on detecting Capacitance Density Distribution.
+Python Package for EIT(Electric Impedance Tomography)-like method on detecting capacitance Density Distribution.
 
 ## Table of Contents
 - [CEIT](#ceit)
@@ -74,7 +74,7 @@ For Examples see `config.json` file.
 | `"shuffle_element"` | `Boolean` | Whether shuffle elemets at initializing mesh |
 | `"electrode_centers"` | `Array` | Center of electrodes on perimeter THE UNIT IS **mm** |
 | `"electrode_radius"`| `Number` | In this package electrodes are treated as square shaped, this parameter is half of its side length.
-| `"capacitance_change_for_JAC"` |`Number`| Capacitance change on every single element when calculating the Jacobian matrix.|
+| `"variable_change_for_JAC"` |`Number`| variable change on every single element when calculating the Jacobian matrix.|
 | `"detection_bound"`| `Number` | Specify the detection boundary size please keep its unit identical to the `"unit"` property|
 | `"calc_from"`| `Number` | Set starting electrode for Jacobian calculation, for multiple instances compute usage.
 | `"calc_end"` | `Number` | Set ending electrode for Jacobian calculation, for multiple instances compute usage.
@@ -83,7 +83,7 @@ For Examples see `config.json` file.
 | `"unit"` | `String` | Unit for the input above. Only `"mm"` or `"SI"` is accepted, **they will all be transferred into SI unit**.|
 |`"mesh_unit"`| `String` |`"mm"`if mesh unit is in millimeter unit, if it's in SI unit, use any other string.
 | `"reconstruction_mode"` |`String`| DEPRECATED ITEM keep this to `"n"`|
-| `"overall_origin_capacitance"` |`Number`| DEPRECATED ITEM keep this to `0`|
+| `"overall_origin_variable"` |`Number`| DEPRECATED ITEM keep this to `0`|
 
 ## Quick Start
 
@@ -147,18 +147,18 @@ fwd_model = EFEM(mesh_obj)
 
 The initializer will automatically prepare the object for calculation, now you have a fully functioning forward solver.
 
-There are several functions provided by this object you can call to change capacitance value and do calculation.
+There are several functions provided by this object you can call to change variable value and do calculation.
 
 |function Name|Description|
 |:----:|:----:|
 |`EFEM.calculation(electrode_input)`|Forward calculation on given input electrode selection **You have to call this to do the calculation**|
 |`EFEM.plot_potential_map(ax)`|Plot the current forward result, default is `0` before calling `calculation()`|
-|`EFEM.plot_current_capacitance(ax)`|Plot the given input condition|
-|`EFEM.change_capacitance_elementwise(element_list, capacitance_list)`|Change capacitance density on selected elements|
-|`EFEM.change_capacitance_geometry(center, radius, value, shape)`|**Assign** capacitance density on elements inside a certain geometry (square or circle) to the given value|
-|`EFEM.change_add_capa_geometry(center, radius, value, shape)`|**Add** the given capacitance density on elements inside a certain geometry|
+|`EFEM.plot_current_variable(ax)`|Plot the given input condition|
+|`EFEM.change_variable_elementwise(element_list, variable_list)`|Change variable density on selected elements|
+|`EFEM.change_variable_geometry(center, radius, value, shape)`|**Assign** variable density on elements inside a certain geometry (square or circle) to the given value|
+|`EFEM.change_add_variable_geometry(center, radius, value, shape)`|**Add** the given variable density on elements inside a certain geometry|
 |`EFEM.change_conductivity(element_list, resistance_list)`|Change conductivity on certain elements|
-|`EFEM.reset_capacitance(overall_capa)`|Set capacitance density on all elements to `overall_capa`|
+|`EFEM.reset_variable(overall_variable)`|Set variable density on all elements to `overall_variable`|
 
 ## Jacobian Constructor
 

@@ -1,183 +1,48 @@
 # @author: Li Zehao <https://philipli.art>
 # @license: MIT
 import math
-from .utilities import get_config
 import cupy as cp
-import matplotlib.patches as patches
-import matplotlib.pyplot as plt
 import numpy as np
-from .fem import FEM_Basic
+from .fem import FEMBasic
 
 
-class EFEM(FEM_Basic):
+class EFEM(FEMBasic):
     """
-    FEM solving for capacitance included forward problem,
+    FEM solving for variable included forward problem,
 
     Functions:
                 calculation(self,electrode_input): Forward Calculation
 
                 plot_potential_map: Plot the forward result
 
-                plot_current_capacitance: Plot the capacitance ground truth
+                plot_current_variable: Plot the variable ground truth
 
-                change_capacitance_elementwise(self, element_list, capacitance_list): Change capacitance
+                change_variable_elementwise(self, element_list, variable_list): Change variable
 
-                change_capacitance_geometry(self, center, radius, value, shape): Change capacitance
+                change_variable_geometry(self, center, radius, value, shape): Change variable
                 
-                change_add_capa_geometry(self, center, radius, value, shape): Adding capacitance to region
+                change_add_variable_geometry(self, center, radius, value, shape): Adding variable to region
 
                 change_conductivity(self, element_list, resistance_list): Change conductivity
 
-                reset_capacitance(self, overall_capa):Reset all capacitance to 0
+                reset_variable(self, overall_variable):Reset all variable to 0
                 
-                reset_capa_to_initial(self, capacitance_value): DEPRECATED Reset with radius 20 square value 10e-8.46
+                reset_variable_to_initial(self, variable_value): DEPRECATED Reset with radius 20 square value 10e-8.46
 
     """
 
     def __init__(self, mesh):
         super().__init__(mesh)
 
-    def plot_capacitance_map(self, ax):
+    def my_solver(self, electrode_input):
         """
-        Plot the current capacitance map,
-
-        Args:
-            ax: matplotlib.pyplot axis class
-        Returns:
-            Image
+        My version of solver
         """
-        im = self.plot_map(ax, self.elem_capacitance)
-        return im
-
-    def plot_potential_map(self, ax):
-        """
-            Plot the current capacitance map,
-
-            Args:
-                ax: matplotlib.pyplot axis class
-            Returns:
-                Image
-        """
-        im = self.plot_map(ax, self.element_potential)
-        return im
-
-    def change_capacitance_elementwise(self, element_list, capacitance_list):
-        """Change capacitance in certain area according to ELEMENT NUMBER,
-
-        Args:
-            element_list: INT LIST element numbers to be changed
-            capacitance_list: FLOAT LIST same dimension list for capacitance on each element included
-        Returns:
-            NULL
-        """
-        if len(element_list) == len(capacitance_list):
-            for i, ele_num in enumerate(element_list):
-                if ele_num > self.elem_num:
-                    raise Exception("Element number exceeds limit")
-                self.elem_capacitance[ele_num] = capacitance_list[i]
-        else:
-            raise Exception('The length of element doesn\'t match the length of capacitance')
-
-    def change_capacitance_geometry(self, center, radius, value, shape):
-        """Change capacitance in certain area according to GEOMETRY,
-
-        Args:
-            center: [FLOAT , FLOAT] center of the shape
-            radius: FLOAT radius (half side length) of the shape
-            value: FLOAT area capacitance value
-            shape: STR "circle", "square"
-        Returns:
-            NULL
-        Raises:
-            No element is selected, please check the input
-            No such shape, please check the input
-        """
-        if shape == "square":
-            center_x, center_y = center
-            count = 0
-            for i, x in enumerate(self.elem_param[:, 7]):
-                if (center_x + radius) >= x >= (center_x - radius) and (
-                        center_y + radius) >= self.elem_param[i][8] >= (center_y - radius):
-                    self.elem_capacitance[i] = value
-                    count += 1
-            if count == 0:
-                raise Exception("No element is selected, please check the input")
-        elif shape == "circle":
-            center_x, center_y = center
-            count = 0
-            for i, x in enumerate(self.elem_param[:, 7]):
-                if np.sqrt((center_x - x) ** 2 + (center_y - self.elem_param[i][8]) ** 2) <= radius:
-                    self.elem_capacitance[i] = value
-                    count += 1
-        else:
-            raise Exception("No such shape, please check the input")
-
-    def change_add_capa_geometry(self, center, radius, value, shape):
-        """Add capacitance in certain area according to GEOMETRY
-
-        Args:
-            center: [FLOAT , FLOAT] center of the shape
-            radius: FLOAT radius (half side length) of the shape
-            value: FLOAT area capacitance value
-            shape: STR "circle", "square"
-        Returns:
-            NULL
-        Raises:
-            No element is selected, please check the input
-            No such shape, please check the input
-        """
-        if shape == "square":
-            center_x, center_y = center
-            count = 0
-            for i, x in enumerate(self.elem_param[:, 7]):
-                if (center_x + radius) >= x >= (center_x - radius) and (
-                        center_y + radius) >= self.elem_param[i][8] >= (center_y - radius):
-                    self.elem_capacitance[i] += value
-                    count += 1
-            if count == 0:
-                raise Exception("No element is selected, please check the input")
-        elif shape == "circle":
-            center_x, center_y = center
-            count = 0
-            for i, x in enumerate(self.elem_param[:, 7]):
-                if np.sqrt((center_x - x) ** 2 + (center_y - self.elem_param[i][8]) ** 2) <= radius:
-                    self.elem_capacitance[i] += value
-                    count += 1
-        else:
-            raise Exception("No such shape, please check the input")
-
-    def reset_capacitance(self, overall_capa=0):
-        """
-        Set capacitance on every value to overall_capa,
-
-        Args:
-            overall_capa: FLOAT target capacitance value for every element
-        """
-        self.elem_capacitance = np.zeros(np.shape(self.elem_perm)) + overall_capa
-
-    def reset_capa_to_initial(self, capacitance_value):
-        """
-        DEPRECATED
-        Set initial distribution of capacitance density value
-        """
-        self.elem_capacitance = np.zeros(np.shape(self.elem_perm))
-        self.change_capacitance_geometry([0, 0], 15, capacitance_value, shape="square")
-
-    def change_conductivity(self, element_list, resistance_list):
-        """
-        Change conductivity in certain area according to ELEMENT NUMBER
-
-         Args:
-            element_list: INT LIST element numbers to be changed
-            resistance_list: FLOAT LIST same dimension list for conductivity on each element included
-        """
-        if len(element_list) == len(resistance_list):
-            for i, ele_num in enumerate(element_list):
-                if ele_num > self.elem_num:
-                    raise Exception("Element number exceeds limit")
-                self.elem_perm[ele_num] = resistance_list[i]
-        else:
-            raise Exception('The length of element doesn\'t match the length of capacitance')
+        theta = np.float(0)
+        self.construct_sparse_matrix()  # 0.1343s
+        self.set_boundary_condition(electrode_input)  # 0.005s
+        self.node_potential = np.abs(self.calculate_FEM(theta))  # 0.211s
+        self.sync_back_potential()  # 0.001s
 
     def construct_sparse_matrix(self):
         """
@@ -191,15 +56,15 @@ class EFEM(FEM_Basic):
             param = self.elem_param[index]
             for i, j in pattern:
                 if i != j:
-                    # stiffness k_ij = sigma * (bk1*bk2 + ck1*ck2)/(4 * area) - j * w * capacitance * (bk1 * ck2 -
+                    # stiffness k_ij = sigma * (bk1*bk2 + ck1*ck2)/(4 * area) - j * w * variable * (bk1 * ck2 -
                     # bk2 * ck1) /24
                     K_ij = self.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
-                            1 * param[0]) - (self.freq * self.elem_capacitance[index] * param[0] / 12) * 1j
+                            1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 12) * 1j
                     self.K_sparse[element[i]][element[j]] += K_ij
                     self.K_sparse[element[j]][element[i]] += K_ij
                 else:
                     K_ij = self.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
-                            1 * param[0]) - (self.freq * self.elem_capacitance[index] * param[0] / 6) * 1j
+                            1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 6) * 1j
                     self.K_sparse[element[i]][element[j]] += K_ij
                     self.K_sparse[element[j]][element[i]] += K_ij
 
@@ -234,7 +99,7 @@ class EFEM(FEM_Basic):
 
     def calculate_FEM(self, theta):
         """
-        Solve forward problem,
+        Solve forward problem
         """
         # changing theta could help increasing the accuracy
         potential_f = np.zeros((self.node_num_f, 1), dtype=np.complex128)  # set the phi_f and phi_b
@@ -263,16 +128,6 @@ class EFEM(FEM_Basic):
         potential = np.copy(self.node_potential)
         for i, j in enumerate(self.K_node_num_list):
             self.node_potential[j] = potential[i]
-
-    def calc_electrode_potential(self):
-        """
-        Get the mean value of potential on every electrode,
-        """
-        for i, elements in enumerate(self.electrode_mesh.values()):
-            potential = []
-            for element in elements:
-                potential.append(self.element_potential[element])
-            self.electrode_potential[i] = np.mean(np.array(potential))
 
     def swap(self, a, b):
         """
