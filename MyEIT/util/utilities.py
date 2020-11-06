@@ -5,6 +5,7 @@ from json import loads
 import csv
 import os
 
+
 def get_config():
     """
     Get info in the config.json file
@@ -12,11 +13,11 @@ def get_config():
     """
     path = os.path.dirname(os.path.realpath(__file__))
     path = os.path.dirname(os.path.dirname(path))
-    with open(path+'\\config.json', 'r', encoding='utf-8') as f:
+    with open(path + '\\config.json', 'r', encoding='utf-8') as f:
         config = loads(f.read())
-    assert config["unit"] == "mm" or config["unit"] == "SI", "Please enter the accurate unit."
+    assert config["sensor_param_unit"] == "mm" or config["sensor_param_unit"] == "SI", "Please enter the accurate unit."
     config["rootdir"] = path
-    if config["unit"] == "mm":
+    if config["sensor_param_unit"] == "mm":
         config["electrode_centers"] = list(np.array(config["electrode_centers"]) / 1000)
         config["electrode_radius"] = config["electrode_radius"] / 1000
         config["detection_bound"] = config["detection_bound"] / 1000
@@ -30,19 +31,21 @@ def save_parameter(param, filename, path_name="."):
     Args:
         param: parameter to save
         filename: filename of the destination without suffix ".pkl" example: "mesh_cache"
-        path_name: path name of the destination example: such as path = os.path.dirname(os.path.realpath(__file__))
+        path_name: path name of the destination example:
+                    such as path = os.path.dirname(os.path.realpath(__file__))
     """
     with open(path_name + "\\" + 'cache_' + filename + '.pkl', "wb") as file:
         pickle.dump(param, file)
 
 
-def read_parameter(filename: object, path_name: object = ".") -> object:
+def read_parameter(filename, path_name):
     """
     Read from .pkl file Use this only with the save_parameter() utility !IMPORTANT,
 
     Args:
         filename: filename of the destination with suffix example: "aaa.csv"
-        path_name: absolute path name of the destination example: such as path = os.path.dirname(os.path.realpath(__file__))
+        path_name: absolute path name of the destination example:
+                    such as path = os.path.dirname(os.path.realpath(__file__))
     Returns:
         data: data in the file
     """
@@ -58,13 +61,14 @@ def save_to_csv_file(data, filename, path_name="."):
     Args:
         data: parameter to save must be 1D or 2D data
         filename: filename of the destination with suffix example: "aaa.csv"
-        path_name: path name of the destination example: "./MESH"
+        path_name: absolute path name of the destination example:
+                    such as path = os.path.dirname(os.path.realpath(__file__))
     """
     assert filename.endswith(".csv"), "The filename is not ended with csv."
     data = np.array(data)
     if len(data.shape) > 2:
         raise ValueError("This function can only store two dimension data.")
-    with open(path_name + "/" + filename, mode='w', newline='') as file:
+    with open(path_name + "\\" + filename, mode='w', newline='') as file:
         data_writer = csv.writer(file, delimiter=',')
         if len(data.shape) == 1:
             data_writer.writerow(data)
@@ -79,16 +83,44 @@ def read_csv_from_file(filename, path_name="./"):
 
     Args:
         filename: filename of the destination with suffix example: "aaa.csv"
-        path_name: path name of the destination example: "./MESH"
+        path_name: absolute path name of the destination example:
+                    such as path = os.path.dirname(os.path.realpath(__file__))
     Returns:
         data: data in the file
     """
     data = []
     assert filename.endswith(".csv"), "The filename is not ended with csv."
-    with open(path_name + "/" + filename, newline='') as file:
+    with open(path_name + "\\" + filename, newline='') as file:
         csv_reader = csv.reader(file, delimiter=',')
         for line in csv_reader:
             if line:
                 line = [float(x) for x in line]
                 data.append(line)
+    return data
+
+
+def read_csv_one_line_from_file(filename, path_name=".", idx=0):
+    """
+    Read from .csv file one line
+
+    Args:
+        filename: filename of the destination with suffix example: "aaa.csv"
+        path_name: absolute path name of the destination example:
+                    such as path = os.path.dirname(os.path.realpath(__file__))
+        idx: line of the data, default to 0
+    Returns:
+        data: data in the file
+    """
+    data = []
+    assert filename.endswith(".csv"), "The filename is not ended with csv."
+    with open(path_name + "\\" + filename, newline='') as file:
+        csv_reader = csv.reader(file, delimiter=',')
+        count = 0
+        for line in csv_reader:
+            if line:
+                if count == idx:
+                    data = [float(x) for x in line]
+                    break
+                else:
+                    count += 1
     return data

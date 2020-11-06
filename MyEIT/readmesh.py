@@ -40,8 +40,8 @@ class ReadMesh(object):
     Change the electrode shape according to the mesh
     """
 
-    def __init__(self, filename, electrode_centers, electrode_radius, folder_name="", optimize_node_num=False,
-                 shuffle_element=False, is_SI=False):
+    def __init__(self, filename, electrode_centers, electrode_radius, unit_name, folder_name="", optimize_node_num=False,
+                 shuffle_element=False):
         self.config = get_config()
         self.nodes = []
         self.elements = []
@@ -62,9 +62,14 @@ class ReadMesh(object):
         self.electrode_centers = electrode_centers
         self.electrode_num = len(self.electrode_centers)
         self.electrode_radius = electrode_radius  # end of electrode info
-        if not is_SI:
-            # turn mm unit to SI unit
-            self.nodes = list(np.array(self.nodes) / 1000)
+        unit_dict = {"m": 1, "cm": 0.1, "mm": 0.001, "inch": 0.0254}
+        if unit_name not in unit_dict.keys():
+            raise ValueError("Mesh unit name not inside the scope, please use one of mm, cm, m, inch.")
+        # Turn mesh unit into SI unit.
+        self.nodes = np.array(self.nodes) / unit_dict[unit_name]
+        max_side = np.max(self.nodes) - np.min(self.nodes)
+        if max_side < 0.05:
+            print("The mesh seems to be too small, please make sure the length is accurate. The max side length is: " + max_side)
         self.clean_mesh()
         if optimize_node_num:
             self.optimize_node_number()
@@ -213,11 +218,11 @@ class read_mesh_from_csv(object):
             mesh object, electrode number, electrode centers, electrode radius
         """
         element_num = len(self.elements)
-        if self.config["mesh_unit"] == "mm":
-            mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes) / 1000,
-                        'perm': np.ones(element_num)}
-        else:
-            mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes), 'perm': np.ones(element_num)}
+        # if self.config["mesh_unit"] == "mm":
+        #     mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes) / 1000,
+        #                 'perm': np.ones(element_num)}
+        # else:
+        mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes), 'perm': np.ones(element_num)}
         return mesh_obj, self.electrode_num, self.electrode_centers, self.electrode_radius
 
 
@@ -232,9 +237,9 @@ def init_mesh(draw=False):
     folder_name = config["folder_name"]
     optimize_node_num = config["optimize_node_num"]
     shuffle_element = config["shuffle_element"]
-    is_SI = config["mesh_unit"] == "SI"
-    read_mesh = ReadMesh(filename, electrode_centers, electrode_radius, folder_name, optimize_node_num, shuffle_element,
-                         is_SI=is_SI)
+    unit_name = config["mesh_unit"]
+    read_mesh = ReadMesh(filename, electrode_centers, electrode_radius, unit_name, folder_name, optimize_node_num,
+                         shuffle_element)
     mesh_obj, electrode_num, electrode_centers, electrode_radius = read_mesh.return_mesh()
     if draw:
         draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius)

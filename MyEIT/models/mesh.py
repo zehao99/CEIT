@@ -4,8 +4,19 @@ import numpy as np
 
 
 class MeshObj(object):
+    """
+    Mesh object for Calculation
+    """
 
     def __init__(self, mesh_obj=None, electrode_num=None, electrode_center_list=None, electrode_radius=None):
+        """
+        Initialize the mesh object, it will generat the parameter if it's not given
+        Args:
+            mesh_obj: see readmesh.py
+            electrode_num: electrode number
+            electrode_center_list: electrode center point list
+            electrode_radius: electrode radius(half side length)
+        """
         self.electrode_mesh = dict()
         if mesh_obj is None or electrode_num is None or electrode_center_list is None or electrode_radius is None:
             mesh_obj, electrode_num, electrode_center_list, electrode_radius = read_mesh_from_csv().return_mesh()
@@ -29,12 +40,12 @@ class MeshObj(object):
 
     def initialize_parameters(self):
         """
-                Update parameters for each element,
+            Update parameters for each element,
 
-                Parameters used for calculating sparse matrix
-                Calculate electrodes' mesh area
-                initialize all electrode
-                """
+            Parameters used for calculating sparse matrix
+            Calculate electrodes' mesh area
+            initialize all electrode
+        """
         x = [.0, .0, .0]
         b = [.0, .0, .0]
         c = [.0, .0, .0]
@@ -67,10 +78,10 @@ class MeshObj(object):
 
         According to the SQUARE area given and put values into electrode_mesh dict
 
-        Parameters:
-                    electrode_number: INT current electrode number
-                    center: [FLOAT,FLOAT] center of electrode
-                    radius: FLOAT half side length of electrode
+        Args:
+            electrode_number: INT current electrode number
+            center: [FLOAT,FLOAT] center of electrode
+            radius: FLOAT half side length of electrode
         """
         if electrode_number >= self.electrode_num:
             raise Exception("the input number exceeded electrode numbers")
