@@ -9,9 +9,9 @@
         [-23.5,-47],[0,-47],[23.5,-47],[47,-47],
         [47,-23.5]
     ],
+    "electrode_radius": 3,
     "signal_frequency": 20000,
     "resistance": 200000,
-    "electrode_radius": 3,
     "reconstruction_mode": "n",
     "variable_change_for_JAC": 1e-3,
     "overall_origin_variable": 0,

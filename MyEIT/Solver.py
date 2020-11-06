@@ -37,6 +37,8 @@ class Solver(object):
             self.read_inv_matrix()
             assert self.inv_mat.shape[0] == self.mesh.detection_index.shape[
                 0], "inverse matrix file inv_mat.npy dimension not equal with detection area,\n please run reinitialize_solver() function to generate a new one or delete the file."
+            assert self.inv_mat.shape[1] == self.mesh.electrode_num * (
+                self.mesh.electrode_num - 1), "Inverse matrix pattern dimension does not match electrode number, please check your JAC matrix, aborting ..."
         else:
             self.read_JAC()
             self.get_inv_matrix(lmbda)
