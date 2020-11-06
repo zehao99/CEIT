@@ -60,13 +60,15 @@ class MeshObj(object):
             parameter_mat = np.array([x, y, [1, 1, 1]])
             parameter_mat = parameter_mat.T  # Trans to vertical
             area = np.abs(np.linalg.det(parameter_mat) / 2)
-            parameter_mat = np.linalg.inv(parameter_mat)  # get interpolation parameters
+            # get interpolation parameters
+            parameter_mat = np.linalg.inv(parameter_mat)
             parameter_mat = parameter_mat.T
             b = list(parameter_mat[:, 0])
             c = list(parameter_mat[:, 1])
             x_average = np.mean(x)  # get center point coordinate
             y_average = np.mean(y)
-            self.elem_param[count] = [area, b[0], b[1], b[2], c[0], c[1], c[2], x_average, y_average]
+            self.elem_param[count] = [area, b[0], b[1],
+                                      b[2], c[0], c[1], c[2], x_average, y_average]
             count += 1
         for i in range(self.electrode_num):
             center = self.electrode_center_list[i]
@@ -94,7 +96,8 @@ class MeshObj(object):
                     self.electrode_mesh[electrode_number].append(i)
                     count += 1
             if count == 0:
-                raise Exception("No element is selected, please check the input")
+                raise Exception(
+                    "No element is selected, please check the input")
 
     def return_mesh(self):
         return self.mesh_obj
@@ -109,6 +112,11 @@ class MeshObj(object):
         original_element = self.elem
         corres_index = []
         new_elem = []
+        # Flatten out the mesh inside electrode
+        flattened_electrode_elem = []
+        for elems in self.electrode_mesh.values():
+            for elem in elems:
+                flattened_electrode_elem.append(elem)
         for i, element in enumerate(original_element):
             x_val = 0
             y_val = 0
@@ -117,8 +125,8 @@ class MeshObj(object):
                 y_val += self.nodes[idx][1]
             x_val /= 3
             y_val /= 3
-
-            if np.abs(x_val) < self.config["detection_bound"] and np.abs(y_val) < self.config["detection_bound"]:
+            # filter out mesh outside detection range and on the electrodes.
+            if i not in flattened_electrode_elem and np.abs(x_val) < self.config["detection_bound"] and np.abs(y_val) < self.config["detection_bound"]:
                 corres_index.append(i)
                 new_elem.append(element)
         self.detection_index = np.array(corres_index)
@@ -134,7 +142,8 @@ class MeshObj(object):
         """
         list_c = np.array(list_c)
         if list_c.ndim > 1:
-            new_list_c = np.zeros((self.detection_index.shape[0], list_c.shape[1]))
+            new_list_c = np.zeros(
+                (self.detection_index.shape[0], list_c.shape[1]))
             for i, j in enumerate(self.detection_index):
                 new_list_c[i] = list_c[j]
             return new_list_c

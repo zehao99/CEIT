@@ -64,9 +64,11 @@ class ReadMesh(object):
         self.electrode_radius = electrode_radius  # end of electrode info
         unit_dict = {"m": 1, "cm": 0.1, "mm": 0.001, "inch": 0.0254}
         if unit_name not in unit_dict.keys():
-            raise ValueError("Mesh unit name not inside the scope, please use one of mm, cm, m, inch.")
+            raise ValueError(
+                "Mesh unit name not inside the scope, please use one of mm, cm, m, inch.")
         # Turn mesh unit into SI unit.
-        self.nodes = np.array(self.nodes) / unit_dict[unit_name]
+        self.nodes = np.array(self.nodes) * unit_dict[unit_name]
+        # Judge if the mesh is too small
         max_side = np.max(self.nodes) - np.min(self.nodes)
         if max_side < 0.05:
             print("The mesh seems to be too small, please make sure the length is accurate. The max side length is: " + max_side)
@@ -104,7 +106,8 @@ class ReadMesh(object):
 
     def return_mesh(self):
         element_num = len(self.elements)
-        mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes), 'perm': np.ones(element_num)}
+        mesh_obj = {'element': np.array(self.elements), 'node': np.array(
+            self.nodes), 'perm': np.ones(element_num)}
         return mesh_obj, self.electrode_num, self.electrode_centers, self.electrode_radius
 
     def optimize_node_number(self):
@@ -169,8 +172,10 @@ class ReadMesh(object):
                 data_writer_2.writerow(element)
 
     def out_2pkl(self, filename='Mesh_'):
-        save_parameter(self.nodes, filename + 'nodes', self.config["rootdir"] + "\\" + self.config["folder_name"])
-        save_parameter(self.elements, filename + 'elements',  self.config["rootdir"] + "\\" + self.config["folder_name"])
+        save_parameter(self.nodes, filename + 'nodes',
+                       self.config["rootdir"] + "\\" + self.config["folder_name"])
+        save_parameter(self.elements, filename + 'elements',
+                       self.config["rootdir"] + "\\" + self.config["folder_name"])
 
 
 class read_mesh_from_csv(object):
@@ -209,8 +214,10 @@ class read_mesh_from_csv(object):
         self.electrode_radius = self.config["electrode_radius"]
 
     def read_from_pkl(self, filename='Mesh_'):
-        self.nodes = read_parameter(filename + 'nodes', self.config["rootdir"] + "\\" + self.config["folder_name"])
-        self.elements = read_parameter(filename + 'elements', self.config["rootdir"] + "\\" + self.config["folder_name"])
+        self.nodes = read_parameter(
+            filename + 'nodes', self.config["rootdir"] + "\\" + self.config["folder_name"])
+        self.elements = read_parameter(
+            filename + 'elements', self.config["rootdir"] + "\\" + self.config["folder_name"])
 
     def return_mesh(self):
         """
@@ -222,7 +229,8 @@ class read_mesh_from_csv(object):
         #     mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes) / 1000,
         #                 'perm': np.ones(element_num)}
         # else:
-        mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes), 'perm': np.ones(element_num)}
+        mesh_obj = {'element': np.array(self.elements), 'node': np.array(
+            self.nodes), 'perm': np.ones(element_num)}
         return mesh_obj, self.electrode_num, self.electrode_centers, self.electrode_radius
 
 
@@ -261,7 +269,8 @@ def draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius):
     perm = mesh_obj['perm']
     x, y = points[:, 0] * 0.7, points[:, 1] * 0.7
     fig, ax = plt.subplots(figsize=(4.25, 4.25))
-    im = ax.tripcolor(x, y, tri, np.abs(perm), shading='flat', edgecolors='k', vmax=2, vmin=0)
+    im = ax.tripcolor(x, y, tri, np.abs(perm), shading='flat',
+                      edgecolors='k', vmax=2, vmin=0)
     # fig.colorbar(im)
     for i, electrode_center in enumerate(electrode_centers):
         x = electrode_center[0] - electrode_radius

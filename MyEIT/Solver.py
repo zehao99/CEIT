@@ -6,13 +6,15 @@ from .util.utilities import get_config
 from .readmesh import read_mesh_from_csv
 from matplotlib import patches
 from .models.mesh import MeshObj
+from .EITPlotter import EITPlotter
+
 
 class Solver(object):
     """
     Lite Jacobian Solver,
 
     You must first generate the jacobian matrix before using this.
-    Use this in realtime reconstruciton.
+    Use this in realtime reconstruction.
 
     The parameters are generated in initialize process
 
@@ -26,11 +28,15 @@ class Solver(object):
         print("Please make sure info in config.json is all correct, HERE WE GO!")
         self.config = get_config()
         mesh_obj, electrode_num, electrode_center_list, electrode_radius = read_mesh_from_csv().return_mesh()
-        self.mesh = MeshObj(mesh_obj, electrode_num, electrode_center_list, electrode_radius)
+        self.mesh = MeshObj(mesh_obj, electrode_num,
+                            electrode_center_list, electrode_radius)
         self.read_JAC()
         self.elem_param = np.zeros((np.shape(self.mesh.elem)[0], 9))
+        self.inv_mat = None
         if os.path.exists(self.config["folder_name"] + '/inv_mat.npy'):
             self.read_inv_matrix()
+            assert self.inv_mat.shape[0] == self.mesh.detection_index.shape[
+                0], "inverse matrix file inv_mat.npy dimension not equal with detection area,\n please run reinitialize_solver() function to generate a new one or delete the file."
         else:
             self.read_JAC()
             self.get_inv_matrix(lmbda)
@@ -50,8 +56,10 @@ class Solver(object):
         """
         Read JAC matrix from file
         """
-        assert os.path.exists(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + 'JAC_cache.npy'), "The JAC matrix is not generated"
-        self.JAC_mat = np.load(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + 'JAC_cache.npy')
+        assert os.path.exists(self.config["rootdir"] + "\\" + self.config["folder_name"] +
+                              "\\" + 'JAC_cache.npy'), "The JAC matrix is not generated"
+        self.JAC_mat = np.load(
+            self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + 'JAC_cache.npy')
 
     def eliminate_non_detect_JAC(self):
         """
@@ -69,7 +77,8 @@ class Solver(object):
         """
         Read Inverse matrix cache
         """
-        self.inv_mat = np.load(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + 'inv_mat.npy')
+        self.inv_mat = np.load(
+            self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + 'inv_mat.npy')
 
     def solve(self, delta_V):
         """
@@ -97,15 +106,17 @@ class Solver(object):
         self.read_JAC()
         J = self.eliminate_non_detect_JAC() - 1
         Q = np.eye(J.shape[1])
-        self.inv_mat = np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T)
-        np.save(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\"+ 'inv_mat.npy', self.inv_mat)
+        self.inv_mat = np.dot(np.linalg.inv(
+            np.dot(J.T, J) + lmbda ** 2 * Q), J.T)
+        np.save(self.config["rootdir"] + "\\" +
+                self.config["folder_name"] + "\\" + 'inv_mat.npy', self.inv_mat)
 
     def adaptive_solver(self, delta_V):
         """
         NOT COMPLETED
         """
         pass
-    
+
     def plot_map_in_detection_range(self, ax, param):
         """
         Plot the current variable map,
@@ -116,22 +127,8 @@ class Solver(object):
         Returns:
             NULL
         """
-        x, y = self.mesh.nodes[:, 0], self.mesh.nodes[:, 1]
-        im = ax.tripcolor(x, y, self.mesh.detection_elem, np.abs(param), shading='flat')
-        ax.set_aspect('equal')
-        radius = self.mesh.electrode_radius
-        for i, electrode_center in enumerate(self.mesh.electrode_center_list):
-            x0 = electrode_center[0] - radius
-            y0 = electrode_center[1] - radius
-            width = 2 * radius
-            ax.add_patch(
-                patches.Rectangle(
-                    (x0, y0),  # (x,y)
-                    width,  # width
-                    width,  # height
-                    color='k'
-                )
-            )
+        plotter = EITPlotter(self.mesh)
+        im = plotter.plot_detection_area_map(param, ax)
 
         return im
 
@@ -146,6 +143,6 @@ def reinitialize_solver(lmbda=0):
     assert (lmbda > 0), "Please enter a positive lmbda parameter"
     config = get_config()
     if os.path.exists(config["rootdir"] + "\\" + config["folder_name"] + "\\" + 'inv_mat.npy'):
-        os.remove(config["rootdir"] + "\\" + config["folder_name"] + "\\" + 'inv_mat.npy')
+        os.remove(config["rootdir"] + "\\" +
+                  config["folder_name"] + "\\" + 'inv_mat.npy')
     Solver(lmbda)
-

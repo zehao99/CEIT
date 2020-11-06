@@ -6,6 +6,7 @@ from MyEIT.Solver import Solver
 
 solver = Solver()
 plotter = EITPlotter()
+# generate random signal
 delta_V = np.random.rand(240)
 
 fig, ax = plt.subplots(nrows=1, ncols=1)

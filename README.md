@@ -150,7 +150,7 @@ First instantiate the class after reading the mesh file.
 ```python
 from MyEIT.EFEM import EFEM
 
-fwd_model = EFEM(mesh_obj)
+fwd_model = EFEM()
 ```
 
 The initializer will automatically prepare the object for calculation, now you have a fully functioning forward solver.
@@ -177,7 +177,7 @@ However, you have to get the mesh and pass it into the initializer
 ```python
 from MyEIT.EJAC import EJAC
 
-jac_calc = EJAC(mesh_obj)
+jac_calc = EJAC()
 jac_calc.JAC_calculation()
 ```
 

@@ -29,7 +29,7 @@ class EJAC(object):
 
                 eit_solve(self, detect_potential, lmbda): Solve inverse problems
 
-                eit_solve_delta_V(self, detect_potential_diff,lmbda)
+                eit_solve_delta_V(self, detect_potential_diff, lmbda)
 
                 read_JAC_np(self): Load JAC matrix from file
 
@@ -74,7 +74,8 @@ class EJAC(object):
         self.electrode_original_potential = np.zeros((self.pattern_num))
         self.JAC_matrix = np.zeros((self.pattern_num, self.elem_num))
         if self.mode == 'n':
-            self.fwd_FEM.reset_variable(overall_variable=self.overall_variable)  # Set overall initial value
+            # Set overall initial value
+            self.fwd_FEM.reset_variable(overall_variable=self.overall_variable)
         elif self.mode == 'i':
             self.fwd_FEM.reset_variable_to_initial(0)  # Set initial value
         else:
@@ -126,7 +127,8 @@ class EJAC(object):
                     count = 0
                     for m in range(self.electrode_num):
                         if m != i:
-                            self.JAC_matrix[i * (self.electrode_num - 1) + count][j] = np.abs(electrode_potential[m])
+                            self.JAC_matrix[i * (self.electrode_num - 1) +
+                                            count][j] = np.abs(electrode_potential[m])
                             count += 1
                     self.fwd_FEM.elem_variable[j] -= variable_change
             # Minus and broadcast original value calculate differiential value
@@ -160,7 +162,8 @@ class EJAC(object):
         Q = np.eye(J.shape[1])  # * area_list
         # Q = np.diag(np.dot(J.T,J))
         delta_V = detect_potential - np.copy(self.electrode_original_potential)
-        variable_predict = np.dot(np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V)
+        variable_predict = np.dot(np.dot(np.linalg.inv(
+            np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V)
         # variable_predict = self.Msolve_gpu(J, Q, lmbda, delta_V)
         # self.plot_potential(delta_V, orig_ratio = 0)
         return variable_predict
@@ -173,7 +176,8 @@ class EJAC(object):
         """
         J = self.eliminate_non_detect_JAC()
         Q = np.eye(J.shape[1])  # * area_list
-        variable_predict = np.dot(np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V)
+        variable_predict = np.dot(np.dot(np.linalg.inv(
+            np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V)
         # variable_predict = self.Msolve_gpu(J, Q, lmbda, delta_V)
         return variable_predict
 
@@ -220,7 +224,8 @@ class EJAC(object):
             delta_V = np.copy(delta_V[slice_list])
         else:
             delta_V = potential
-        variable_predict = np.dot(np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V) * 1e-4
+        variable_predict = np.dot(np.dot(np.linalg.inv(
+            np.dot(J.T, J) + lmbda ** 2 * Q), J.T), delta_V) * 1e-4
         return variable_predict
 
     def save_inv_matrix(self, lmbda=203):
@@ -234,7 +239,8 @@ class EJAC(object):
         J = self.eliminate_non_detect_JAC() - 1
         Q = np.eye(J.shape[1])
         JAC_inv = np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T)
-        np.save(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\inv_mat.npy', JAC_inv)
+        np.save(self.config["rootdir"] + "\\" +
+                self.config["folder_name"] + '\\inv_mat.npy', JAC_inv)
 
     def read_inv_matrix(self):
         """
@@ -256,13 +262,15 @@ class EJAC(object):
         """
         save JAC matrix to JAC_cache.npy
         """
-        np.save(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\JAC_cache.npy', self.JAC_matrix)
+        np.save(self.config["rootdir"] + "\\" +
+                self.config["folder_name"] + '\\JAC_cache.npy', self.JAC_matrix)
 
     def read_JAC_np(self):
         """
         read JAC matrix to JAC_cache.npy
         """
-        self.JAC_matrix = np.load(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\JAC_cache.npy')
+        self.JAC_matrix = np.load(
+            self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\JAC_cache.npy')
 
     def save_JAC_2file(self):
         """
@@ -306,14 +314,16 @@ class EJAC(object):
         Didn't work.....
         """
         sensitivity = self.get_sensitivity_list()
-        self.JAC_matrix = self.JAC_matrix / sensitivity.T * np.mean(sensitivity)
+        self.JAC_matrix = self.JAC_matrix / \
+            sensitivity.T * np.mean(sensitivity)
 
     def plot_sensitivity(self, area_normalization=True):
         """
         Plot sensitivity map
         """
         if area_normalization:
-            sensitivity = self.get_sensitivity_list() / self.fwd_FEM.mesh.elem_param[:, 0]
+            sensitivity = self.get_sensitivity_list(
+            ) / self.fwd_FEM.mesh.elem_param[:, 0]
         else:
             sensitivity = self.get_sensitivity_list()
         points = self.fwd_FEM.mesh.nodes
@@ -324,7 +334,7 @@ class EJAC(object):
         fig.colorbar(im)
         ax.set_aspect('equal')
         plt.show()
-    
+
     def plot_map_in_detection_range(self, param, ax):
         """
         Plot the current variable map,

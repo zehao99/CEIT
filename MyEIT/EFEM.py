@@ -20,18 +20,18 @@ class EFEM(FEMBasic):
                 change_variable_elementwise(self, element_list, variable_list): Change variable
 
                 change_variable_geometry(self, center, radius, value, shape): Change variable
-                
+
                 change_add_variable_geometry(self, center, radius, value, shape): Adding variable to region
 
                 change_conductivity(self, element_list, resistance_list): Change conductivity
 
                 reset_variable(self, overall_variable):Reset all variable to 0
-                
+
                 reset_variable_to_initial(self, variable_value): DEPRECATED Reset with radius 20 square value 10e-8.46
 
     """
 
-    def __init__(self, mesh):
+    def __init__(self, mesh=None):
         super().__init__(mesh)
 
     def my_solver(self, electrode_input):
@@ -59,12 +59,12 @@ class EFEM(FEMBasic):
                     # stiffness k_ij = sigma * (bk1*bk2 + ck1*ck2)/(4 * area) - j * w * variable * (bk1 * ck2 -
                     # bk2 * ck1) /24
                     K_ij = self.mesh.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
-                            1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 12) * 1j
+                        1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 12) * 1j
                     self.K_sparse[element[i]][element[j]] += K_ij
                     self.K_sparse[element[j]][element[i]] += K_ij
                 else:
                     K_ij = self.mesh.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
-                            1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 6) * 1j
+                        1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 6) * 1j
                     self.K_sparse[element[i]][element[j]] += K_ij
                     self.K_sparse[element[j]][element[i]] += K_ij
 
@@ -102,20 +102,26 @@ class EFEM(FEMBasic):
         Solve forward problem
         """
         # changing theta could help increasing the accuracy
-        potential_f = np.zeros((self.node_num_f, 1), dtype=np.complex128)  # set the phi_f and phi_b
-        potential_b = (np.cos(theta) + 1j * math.sin(theta)) * np.ones((self.node_num_bound, 1))
+        # set the phi_f and phi_b
+        potential_f = np.zeros((self.node_num_f, 1), dtype=np.complex128)
+        potential_b = (np.cos(theta) + 1j * math.sin(theta)) * \
+            np.ones((self.node_num_bound, 1))
         if self.node_num_ground != 0:
-            potential_g = np.zeros((self.node_num_ground, 1), dtype=np.complex128)
+            potential_g = np.zeros(
+                (self.node_num_ground, 1), dtype=np.complex128)
             potential_b = np.append(potential_g, potential_b)
         K_f = self.K_sparse[0: self.node_num_f, 0: self.node_num_f]
         K_b = self.K_sparse[0: self.node_num_f, self.node_num_f: self.node_num]
         # solving the linear equation set
         if self.config["device"] == "gpu":
-            potential_f = calculate_FEM_equation(potential_f, K_f, K_b, potential_b)  # GPU_Method faster
+            potential_f = calculate_FEM_equation(
+                potential_f, K_f, K_b, potential_b)  # GPU_Method faster
         elif self.config["device"] == "cpu":
-            potential_f = - np.dot(np.dot(np.linalg.inv(K_f), K_b), potential_b)
+            potential_f = - \
+                np.dot(np.dot(np.linalg.inv(K_f), K_b), potential_b)
         else:
-            raise Exception('Please make sure you specified device inside the config file to \"cpu\" or \"gpu\"')
+            raise Exception(
+                'Please make sure you specified device inside the config file to \"cpu\" or \"gpu\"')
         potential_f = np.reshape(potential_f, (-1))
         potential_b = np.reshape(potential_b, (-1))
         potential_f = np.append(potential_f, potential_b)
@@ -146,6 +152,7 @@ def calculate_FEM_equation(potential_f, K_f, K_b, potential_b):
     K_f_gpu = cp.asarray(K_f)
     K_b_gpu = cp.asarray(K_b)
     potential_b_gpu = cp.asarray(potential_b)
-    result_gpu = - cp.dot(cp.dot(cp.linalg.inv(K_f_gpu), K_b_gpu), potential_b_gpu)
+    result_gpu = - cp.dot(cp.dot(cp.linalg.inv(K_f_gpu),
+                                 K_b_gpu), potential_b_gpu)
     result = cp.asnumpy(result_gpu)
     return result  # solving the linear equation set
