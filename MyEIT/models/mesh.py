@@ -113,7 +113,7 @@ class MeshObj(object):
 
     def calc_detection_elements(self):
         """
-        Get elements whose center is inside detection range
+        Get elements whose center is inside detection range and not inside electrode,
         """
         original_element = self.elem
         corres_index = []

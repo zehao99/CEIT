@@ -30,6 +30,8 @@ class EITPlotter(object):
 
             The detection area is the area inside ``detection_bound`` and excluding the electrode meshes.
 
+            TURNING with_electrode ON WILL AFFECT PERFORMANCE
+
             Args:
                 param: parameter to be plotted(must match with the element)
                 ax: matplotlib.pyplot axis class
@@ -44,6 +46,8 @@ class EITPlotter(object):
     def plot_full_area_map(self, param, ax, with_electrode=False):
         """
         Plot the current variable map inside whole mesh area.
+
+        TURNING with_electrode ON WILL AFFECT PERFORMANCE
 
         Args:
             param: parameter to be plotted(must match with the element)
@@ -73,26 +77,35 @@ class EITPlotter(object):
         im = ax.tripcolor(x, y, elements, param, shading='flat', cmap=cmap)
         ax.set_aspect('equal')
         if with_electrode:
-            radius = self.mesh.electrode_radius
-            perimeter = self.mesh.get_perimeter()
-            p_x = []
-            p_y = []
-            for idx in perimeter:
-                p_x.append(self.mesh.nodes[idx][0])
-                p_y.append(self.mesh.nodes[idx][1])
-            p_x.append(self.mesh.nodes[perimeter[0]][0])
-            p_y.append(self.mesh.nodes[perimeter[0]][1])
-            ax.plot(p_x, p_y, color='k')
-            for i, electrode_center in enumerate(self.mesh.electrode_center_list):
-                x0 = electrode_center[0] - radius
-                y0 = electrode_center[1] - radius
-                width = 2 * radius
-                ax.add_patch(
-                    patches.Rectangle(
-                        (x0, y0),  # (x,y)
-                        width,  # width
-                        width,  # height
-                        color='k'
-                    )
-                )
+            self.add_electrodes_to_axes(ax)
         return im
+
+    def add_electrodes_to_axes(self, ax):
+        """
+        Add electrodes to the axes.
+
+        Args:
+            ax: matplotlib.axes object.
+        """
+        radius = self.mesh.electrode_radius
+        perimeter = self.mesh.get_perimeter()
+        p_x = []
+        p_y = []
+        for idx in perimeter:
+            p_x.append(self.mesh.nodes[idx][0])
+            p_y.append(self.mesh.nodes[idx][1])
+        p_x.append(self.mesh.nodes[perimeter[0]][0])
+        p_y.append(self.mesh.nodes[perimeter[0]][1])
+        ax.plot(p_x, p_y, color='k')
+        for i, electrode_center in enumerate(self.mesh.electrode_center_list):
+            x0 = electrode_center[0] - radius
+            y0 = electrode_center[1] - radius
+            width = 2 * radius
+            ax.add_patch(
+                patches.Rectangle(
+                    (x0, y0),  # (x,y)
+                    width,  # width
+                    width,  # height
+                    color='k'
+                )
+            )
