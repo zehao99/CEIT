@@ -1,7 +1,7 @@
 # @author: Li Zehao <https://philipli.art>
 # @license: MIT
 import math
-import cupy as cp
+# import cupy as cp
 import numpy as np
 from .FEMBasic import FEMBasic
 
@@ -149,10 +149,11 @@ def calculate_FEM_equation(potential_f, K_f, K_b, potential_b):
     """
     GPU acceleration for inverse calculation,
     """
-    K_f_gpu = cp.asarray(K_f)
-    K_b_gpu = cp.asarray(K_b)
-    potential_b_gpu = cp.asarray(potential_b)
-    result_gpu = - cp.dot(cp.dot(cp.linalg.inv(K_f_gpu),
-                                 K_b_gpu), potential_b_gpu)
-    result = cp.asnumpy(result_gpu)
-    return result  # solving the linear equation set
+    pass
+    # K_f_gpu = cp.asarray(K_f)
+    # K_b_gpu = cp.asarray(K_b)
+    # potential_b_gpu = cp.asarray(potential_b)
+    # result_gpu = - cp.dot(cp.dot(cp.linalg.inv(K_f_gpu),
+    #                              K_b_gpu), potential_b_gpu)
+    # result = cp.asnumpy(result_gpu)
+    # return result  # solving the linear equation set

@@ -25,6 +25,14 @@ class Solver(object):
     """
 
     def __init__(self, lmbda=289):
+        """
+        Initialize Solver
+
+        pass in a lmbda parameter as the regularization parameter.
+
+        Args:
+            lmbda: regularization parameter assigned
+        """
         print("Please make sure info in config.json is all correct, HERE WE GO!")
         self.config = get_config()
         mesh_obj, electrode_num, electrode_center_list, electrode_radius = read_mesh_from_csv().return_mesh()

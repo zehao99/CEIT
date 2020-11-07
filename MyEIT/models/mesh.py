@@ -1,5 +1,5 @@
 from ..readmesh import read_mesh_from_csv
-from ..util.utilities import get_config
+from ..util.utilities import get_config, PointStack, Comp, quicksort
 import numpy as np
 
 
@@ -100,6 +100,12 @@ class MeshObj(object):
                     "No element is selected, please check the input")
 
     def return_mesh(self):
+        """
+        Return the mesh dict
+
+        Returns:
+            dict: mesh info.
+        """
         return self.mesh_obj
 
     def return_electrode_info(self):
@@ -113,10 +119,10 @@ class MeshObj(object):
         corres_index = []
         new_elem = []
         # Flatten out the mesh inside electrode
-        flattened_electrode_elem = []
+        flattened_electrode_elem = set()
         for elems in self.electrode_mesh.values():
             for elem in elems:
-                flattened_electrode_elem.append(elem)
+                flattened_electrode_elem.add(elem)
         for i, element in enumerate(original_element):
             x_val = 0
             y_val = 0
@@ -126,7 +132,8 @@ class MeshObj(object):
             x_val /= 3
             y_val /= 3
             # filter out mesh outside detection range and on the electrodes.
-            if i not in flattened_electrode_elem and np.abs(x_val) < self.config["detection_bound"] and np.abs(y_val) < self.config["detection_bound"]:
+            if i not in flattened_electrode_elem and np.abs(x_val) < self.config["detection_bound"] and np.abs(y_val) < \
+                    self.config["detection_bound"]:
                 corres_index.append(i)
                 new_elem.append(element)
         self.detection_index = np.array(corres_index)
@@ -134,6 +141,8 @@ class MeshObj(object):
 
     def delete_outside_detect(self, list_c):
         """
+        Delete the elements inside a list corresponding to the elements inside detection
+
         Args:
             list_c : an all-element-wise list
 
@@ -154,3 +163,80 @@ class MeshObj(object):
             return new_list_c
         else:
             raise Exception("Transfer Shape Not Correct")
+
+    def get_perimeter(self):
+        """
+        Get the perimiter of the mesh, return in idx sequence.
+
+        This function get the Convex Hull of the mesh and return the chain of node index list of the hull.
+
+        Returns:
+            node index list on perimeter in CCW.
+        """
+        # get start point
+        start_point = 0
+        min_y = 100000000
+        x = 100000000
+        for i, node in enumerate(self.nodes):
+            if node[1] < min_y:
+                start_point = i
+                min_y = node[1]
+                x = node[0]
+            elif node[1] == min_y:
+                if node[0] < x:
+                    start_point = i
+                    x = node[0]
+        # sort the rest points
+        nodes = np.zeros((self.nodes.shape[0] - 1, self.nodes.shape[1] + 1))
+        pointer = 0
+        for i, node in enumerate(self.nodes):
+            if i != start_point:
+                nodes[pointer] = np.array([node[0], node[1], i])
+                pointer += 1
+        comp = Comp(self.nodes[start_point])
+        quicksort(nodes, comp)
+        # construct perimeter
+        stack = PointStack()
+        orig = np.array([self.nodes[start_point][0], self.nodes[start_point][1], start_point])
+        stack.push(orig)
+        stack.push(nodes[0])
+        stack.push(nodes[1])
+        for i, node in enumerate(nodes):
+            if i < 2:
+                continue
+            while len(stack) > 1 and ccw(stack.next_to_top(), stack.peek(), node) in [-1, 0]:
+                a = stack.next_to_top()
+                b = stack.peek()
+                c = node
+                ans = ccw(a, b, c)
+                stack.pop()
+            stack.push(node)
+        # prepare return array
+        ans = np.zeros((len(stack)), dtype=np.int)
+        pointer = len(stack) - 1
+        while not stack.isEmpty():
+            idx = int(stack.pop()[2])
+            ans[pointer] = idx
+            pointer -= 1
+        return ans
+
+
+def ccw(p0, p1, p2):
+    """
+    Judge whether p0p2 vector is ccw to p0p1 vector.
+
+    Return value map: \n
+        1: p0p2 is ccw to p0p1 (angle to x axis bigger) \n
+        0: p0p2 and p0p1 on a same line \n
+        -1: p0p2 is cw to p0p1 (angle to x axis smaller) \n
+
+    Args:
+        p0: base point index 0 and 1 is x and y value. [x, y, ...]
+        p1: first point index 0 and 1 is x and y value. [x, y, ...]
+        p2: second point index 0 and 1 is x and y value. [x, y, ...]
+
+    Returns:
+        int: judgement value -1 or 0 or 1
+    """
+    comp = Comp(p0)
+    return comp.compare_angle(p2, p1)

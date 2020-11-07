@@ -21,7 +21,7 @@
     "calc_from": 0,
     "calc_end": 16,
     "regularization_coeff": 295,
-    "device": "gpu",
+    "device": "cpu",
     "sensor_param_unit": "mm",
     "mesh_unit": "mm"
 }
