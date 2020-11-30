@@ -9,7 +9,7 @@ fwd = EFEM()
 obj_x = -20  # object x position
 obj_y = -10  # object y position
 obj_r = 1    # object radius
-c_val = 1e-2    # object variable density val
+c_val = 1e-6    # object variable density val
 obj_shape = "square"    # object shape
 
 fwd.change_add_variable_geometry(
