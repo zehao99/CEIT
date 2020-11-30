@@ -107,6 +107,8 @@ def read_csv_one_line_from_file(filename, path_name=".", idx=0):
     """
     Read from .csv file one line
 
+    This function reads csv from first line to the idx line, which might be very slow.
+
     Args:
         filename: filename of the destination with suffix example: "aaa.csv"
         path_name: absolute path name of the destination example:
@@ -335,7 +337,8 @@ def sort_helper(array, comp, start, end):
     """
     lo = start
     hi = end
-    if lo >= hi: return
+    if lo >= hi:
+        return
     p = lo
     lo = lo + 1
     while lo <= hi:

@@ -44,9 +44,11 @@ class Solver(object):
         if os.path.exists(self.config["folder_name"] + '/inv_mat.npy'):
             self.read_inv_matrix()
             assert self.inv_mat.shape[0] == self.mesh.detection_index.shape[
-                0], "inverse matrix file inv_mat.npy dimension not equal with detection area,\n please run reinitialize_solver() function to generate a new one or delete the file."
+                0], "inverse matrix file inv_mat.npy dimension not equal with detection area,\n please run " \
+                    "reinitialize_solver() function from MyEIT.Solver to generate a new one or delete the file. "
             assert self.inv_mat.shape[1] == self.mesh.electrode_num * (
-                self.mesh.electrode_num - 1), "Inverse matrix pattern dimension does not match electrode number, please check your JAC matrix, aborting ..."
+                self.mesh.electrode_num - 1), "Inverse matrix pattern dimension does not match electrode number, " \
+                                              "please check your JAC matrix, aborting ... "
         else:
             self.read_JAC()
             self.get_inv_matrix(lmbda)
@@ -149,10 +151,15 @@ def reinitialize_solver(lmbda=0):
 
     Deletes the inv_mat.npy file and regenerate it.
 
+    Args:
+        lmbda: regularization parameter for inverse matrix.
+
+    Returns:
+        Solver: new solver initiated
     """
     assert (lmbda > 0), "Please enter a positive lmbda parameter"
     config = get_config()
     if os.path.exists(config["rootdir"] + "\\" + config["folder_name"] + "\\" + 'inv_mat.npy'):
         os.remove(config["rootdir"] + "\\" +
                   config["folder_name"] + "\\" + 'inv_mat.npy')
-    Solver(lmbda)
+    return Solver(lmbda)

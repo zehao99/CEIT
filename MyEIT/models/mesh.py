@@ -132,7 +132,9 @@ class MeshObj(object):
             x_val /= 3
             y_val /= 3
             # filter out mesh outside detection range and on the electrodes.
-            if i not in flattened_electrode_elem and np.abs(x_val) < self.config["detection_bound"] and np.abs(y_val) < \
+            # if i not in flattened_electrode_elem and np.abs(x_val) < self.config["detection_bound"] and np.abs(y_val) < \
+            #         self.config["detection_bound"]:
+            if np.abs(x_val) < self.config["detection_bound"] and np.abs(y_val) < \
                     self.config["detection_bound"]:
                 corres_index.append(i)
                 new_elem.append(element)
@@ -166,7 +168,7 @@ class MeshObj(object):
 
     def get_perimeter(self):
         """
-        Get the perimiter of the mesh, return in idx sequence.
+        Get the perimeter of the mesh, return in idx sequence.
 
         This function get the Convex Hull of the mesh and return the chain of node index list of the hull.
 

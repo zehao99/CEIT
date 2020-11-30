@@ -25,7 +25,7 @@ This python package is designed for solving the tomographic problem concerned wi
 
 It can also be used on other "weird" types of EIT-like problem(**different differential equation compared to traditional EIT**), **this package is now focusing on Gauss-Newton solver**. If you are looking into impedance problem specifically, then maybe you want to check out this [package](https://github.com/liubenyuan/pyEIT).
 
-For more information, please check my paper (The link will be available after it's online).
+For more information, please check [my paper](https://ieeexplore.ieee.org/document/9254590).
 
 The `efem.py` module is written only for this problem, other modules can be reused in any other EIT application.
 
@@ -235,4 +235,21 @@ Override this method to get your own forward simulator.
 
 ## Cite our work
 
-This package is used in our paper presented on IECON 2020 conference, if you find this package helpful, please cite our work(the BibTeX will be updated once the paper is online) and give it a star or even better, commit a pull request.
+This package is used in our paper presented on IECON 2020 conference, if you find this package helpful, please cite our work.
+
+```
+@INPROCEEDINGS{
+  9254590,
+  author={Z. {Li} and S. {Yoshimoto} and A. {Yamamoto}},
+  booktitle={IECON 2020 The 46th Annual Conference of the IEEE Industrial Electronics Society}, 
+  title={Tomographic Approach for Proximity Imaging using Conductive Sheet}, 
+  year={2020},
+  volume={},
+  number={},
+  pages={748-753},
+  keywords={Tomography;proximity imaging;haptics;robot-skin},
+  doi={10.1109/IECON43393.2020.9254590},
+  ISSN={2577-1647},
+  month={Oct},
+}
+```
