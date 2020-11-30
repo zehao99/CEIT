@@ -129,18 +129,20 @@ class Solver(object):
         """
         pass
 
-    def plot_map_in_detection_range(self, ax, param):
+    def plot_map_in_detection_range(self, ax, param, vmax=None, vmin=None):
         """
         Plot the current variable map,
 
         Args:
             ax: matplotlib.pyplot axis class
             param: parameter to be plotted(must match with the element)
+            vmax: max value limit of the graph
+            vmin: min value limit of the graph
         Returns:
-            NULL
+            matplotlib.image
         """
         plotter = EITPlotter(self.mesh)
-        im = plotter.plot_detection_area_map(param, ax)
+        im = plotter.plot_detection_area_map(param, ax, True, vmax=vmax, vmin=vmin)
 
         return im
 

@@ -51,13 +51,11 @@ class EFEM(FEMBasic):
         index = 0
         K_ij = 0 + 0j
         pattern = [[0, 0], [1, 1], [2, 2], [0, 1], [1, 2], [2, 0], [1, 0], [2, 1],
-                   [0, 2]]  # go through every combination of k1 and k2
+                   [0, 2]]
         for element in self.mesh.elem:
             param = self.mesh.elem_param[index]
             for i, j in pattern:
                 if i != j:
-                    # stiffness k_ij = sigma * (bk1*bk2 + ck1*ck2)/(4 * area) - j * w * variable * (bk1 * ck2 -
-                    # bk2 * ck1) /24
                     K_ij = self.mesh.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
                         1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 12) * 1j
                     self.K_sparse[element[i]][element[j]] += K_ij

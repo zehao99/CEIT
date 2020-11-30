@@ -9,6 +9,7 @@ class EITPlotter(object):
     """
     Plotter for plotting distribution of variables inside the problem.
     """
+
     def __init__(self, mesh=None):
         """
         Initialize the plotter
@@ -24,7 +25,7 @@ class EITPlotter(object):
         else:
             self.mesh = mesh
 
-    def plot_detection_area_map(self, param, ax, with_electrode=False):
+    def plot_detection_area_map(self, param, ax, with_electrode=False, vmax=None, vmin=None):
         """
             Plot the current variable map inside detection area.
 
@@ -36,14 +37,16 @@ class EITPlotter(object):
                 param: parameter to be plotted(must match with the element)
                 ax: matplotlib.pyplot axis class
                 with_electrode: whether to add electrodes inside plot
+                vmax: max value limit of the graph
+                vmin: min value limit of the graph
             Returns:
                 im: matplotlib image
         """
         im = self.plot_with_electrode_shown_helper(
-            self.mesh.detection_elem, np.abs(param), ax, with_electrode, cmap='viridis')
+            self.mesh.detection_elem, np.abs(param), ax, with_electrode, cmap='viridis', vmax=vmax, vmin=vmin)
         return im
 
-    def plot_full_area_map(self, param, ax, with_electrode=False):
+    def plot_full_area_map(self, param, ax, with_electrode=False, vmax=None, vmin=None):
         """
         Plot the current variable map inside whole mesh area.
 
@@ -53,14 +56,16 @@ class EITPlotter(object):
             param: parameter to be plotted(must match with the element)
             ax: matplotlib.pyplot axis class
             with_electrode: whether to add electrodes inside plot
+            vmax: max value limit of the graph
+            vmin: min value limit of the graph
         Returns:
             im: matplotlib image object
         """
         im = self.plot_with_electrode_shown_helper(
-            self.mesh.elem, np.abs(param), ax, with_electrode)
+            self.mesh.elem, np.abs(param), ax, with_electrode, vmax, vmin)
         return im
 
-    def plot_with_electrode_shown_helper(self, elements, param, ax, with_electrode=False, cmap='plasma'):
+    def plot_with_electrode_shown_helper(self, elements, param, ax, with_electrode=False, cmap='plasma', vmax=None, vmin=None):
         """
         Plot the current variable map,
 
@@ -69,12 +74,18 @@ class EITPlotter(object):
             ax: matplotlib.pyplot axis class
             param: parameter to be plotted(must match with the element)
             with_electrode: whether to add electrodes inside plot
-            cmap: Color map options for ``ax.tripcolor``
+            cmap: Color map options for axes.tripcolor
+            vmax: max value limit of the graph
+            vmin: min value limit of the graph
         Returns:
 
         """
+        if vmax is None:
+            vmax = np.max(param)
+        if vmin is None:
+            vmin = np.min(param)
         x, y = self.mesh.nodes[:, 0], self.mesh.nodes[:, 1]
-        im = ax.tripcolor(x, y, elements, param, shading='flat', cmap=cmap)
+        im = ax.tripcolor(x, y, elements, param, shading='flat', cmap=cmap, vmax=vmax, vmin=vmin)
         ax.set_aspect('equal')
         if with_electrode:
             self.add_electrodes_to_axes(ax)
