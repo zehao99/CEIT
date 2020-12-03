@@ -19,12 +19,18 @@ def get_config():
     path = os.path.dirname(os.path.dirname(path))
     with open(path + '\\config.json', 'r', encoding='utf-8') as f:
         config = loads(f.read())
-    assert config["sensor_param_unit"] == "mm" or config["sensor_param_unit"] == "SI", "Please enter the accurate unit."
+    param_unit = config["sensor_param_unit"]
+    assert (isinstance(param_unit, str) and (param_unit == "mm" or param_unit == "SI")) or \
+        isinstance(param_unit, float), "Please enter the accurate unit."
     config["rootdir"] = path
-    if config["sensor_param_unit"] == "mm":
+    if param_unit == "mm":
         config["electrode_centers"] = list(np.array(config["electrode_centers"]) / 1000)
         config["electrode_radius"] = config["electrode_radius"] / 1000
         config["detection_bound"] = config["detection_bound"] / 1000
+    elif isinstance(param_unit, float):
+        config["electrode_centers"] = list(np.array(config["electrode_centers"]) * param_unit)
+        config["electrode_radius"] *= param_unit
+        config["detection_bound"] *= param_unit
     return config
 
 

@@ -10,7 +10,7 @@ class MeshObj(object):
 
     def __init__(self, mesh_obj=None, electrode_num=None, electrode_center_list=None, electrode_radius=None):
         """
-        Initialize the mesh object, it will generat the parameter if it's not given
+        Initialize the mesh object, it will generate the parameter if it's not given
         Args:
             mesh_obj: see readmesh.py
             electrode_num: electrode number
@@ -74,6 +74,13 @@ class MeshObj(object):
             center = self.electrode_center_list[i]
             self.calc_electrode_elements(i, center, self.electrode_radius)
 
+    def scale_mesh(self, scale_factor):
+        self.nodes *= scale_factor
+        self.point_x *= scale_factor
+        self.point_y *= scale_factor
+        self.electrode_radius *= scale_factor
+        self.electrode_center_list = list(np.array(self.electrode_center_list) * scale_factor)
+
     def calc_electrode_elements(self, electrode_number, center, radius):
         """
         Get the electrode element sets for every electrode,
@@ -132,8 +139,8 @@ class MeshObj(object):
             x_val /= 3
             y_val /= 3
             # filter out mesh outside detection range and on the electrodes.
-            # if i not in flattened_electrode_elem and np.abs(x_val) < self.config["detection_bound"] and np.abs(y_val) < \
-            #         self.config["detection_bound"]:
+            # if i not in flattened_electrode_elem and np.abs(x_val) < \
+            #         self.config["detection_bound"] and np.abs(y_val) < self.config["detection_bound"]:
             if np.abs(x_val) < self.config["detection_bound"] and np.abs(y_val) < \
                     self.config["detection_bound"]:
                 corres_index.append(i)

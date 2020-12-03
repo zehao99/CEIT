@@ -40,7 +40,8 @@ class ReadMesh(object):
     Change the electrode shape according to the mesh
     """
 
-    def __init__(self, filename, electrode_centers, electrode_radius, unit_name, folder_name="", optimize_node_num=False,
+    def __init__(self, filename, electrode_centers, electrode_radius, unit_name, folder_name="",
+                 optimize_node_num=False,
                  shuffle_element=False):
         self.config = get_config()
         self.nodes = []
@@ -62,16 +63,23 @@ class ReadMesh(object):
         self.electrode_centers = electrode_centers
         self.electrode_num = len(self.electrode_centers)
         self.electrode_radius = electrode_radius  # end of electrode info
+        # Judge unit of the mesh
         unit_dict = {"m": 1, "cm": 0.1, "mm": 0.001, "inch": 0.0254}
-        if unit_name not in unit_dict.keys():
-            raise ValueError(
-                "Mesh unit name not inside the scope, please use one of mm, cm, m, inch.")
+        transfer_param = 0
+        if isinstance(unit_name, str):
+            if unit_name not in unit_dict.keys():
+                raise ValueError(
+                    "Mesh unit name not inside the scope, please use one of mm, cm, m, inch.")
+            transfer_param = unit_dict[unit_name]
+        elif isinstance(unit_name, float):
+            transfer_param = unit_name
         # Turn mesh unit into SI unit.
-        self.nodes = np.array(self.nodes) * unit_dict[unit_name]
+        self.nodes = np.array(self.nodes) * transfer_param
         # Judge if the mesh is too small
         max_side = np.max(self.nodes) - np.min(self.nodes)
         if max_side < 0.05:
-            print("The mesh seems to be too small, please make sure the length is accurate. The max side length is: " + max_side)
+            print(
+                "The mesh seems to be too small, please make sure the length is accurate. The max side length is: " + max_side + "meter")
         self.clean_mesh()
         if optimize_node_num:
             self.optimize_node_number()
@@ -162,11 +170,13 @@ class ReadMesh(object):
             return - np.arccos(x / r) + 2 * np.pi
 
     def output(self, file_name='Mesh_Cache'):
-        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + file_name + '_Node.csv', mode='w', newline='') as outfile:
+        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + file_name + '_Node.csv', mode='w',
+                  newline='') as outfile:
             data_writer = csv.writer(outfile, delimiter=',')
             for node in self.nodes:
                 data_writer.writerow(node)
-        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + file_name + '_Element.csv', mode='w', newline='') as outfile_2:
+        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + file_name + '_Element.csv',
+                  mode='w', newline='') as outfile_2:
             data_writer_2 = csv.writer(outfile_2, delimiter=',')
             for element in self.elements:
                 data_writer_2.writerow(element)
@@ -192,13 +202,15 @@ class read_mesh_from_csv(object):
         if mode == 'csv':
             self.nodes = []
             self.elements = []
-            with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\' + name + '_Node.csv', newline='') as datafile:
+            with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\' + name + '_Node.csv',
+                      newline='') as datafile:
                 csv_reader = csv.reader(datafile, delimiter=',')
                 for line in csv_reader:
                     if line:
                         line = [float(x) for x in line]
                         self.nodes.append(line)
-            with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\' + name + '_Element.csv', newline='') as datafile_2:
+            with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\' + name + '_Element.csv',
+                      newline='') as datafile_2:
                 csv_reader_2 = csv.reader(datafile_2, delimiter=',')
                 for line in csv_reader_2:
                     if line:
@@ -225,10 +237,6 @@ class read_mesh_from_csv(object):
             mesh object, electrode number, electrode centers, electrode radius
         """
         element_num = len(self.elements)
-        # if self.config["mesh_unit"] == "mm":
-        #     mesh_obj = {'element': np.array(self.elements), 'node': np.array(self.nodes) / 1000,
-        #                 'perm': np.ones(element_num)}
-        # else:
         mesh_obj = {'element': np.array(self.elements), 'node': np.array(
             self.nodes), 'perm': np.ones(element_num)}
         return mesh_obj, self.electrode_num, self.electrode_centers, self.electrode_radius
@@ -267,7 +275,7 @@ def draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius):
     points = mesh_obj['node']
     tri = mesh_obj['element']
     perm = mesh_obj['perm']
-    x, y = points[:, 0] * 0.7, points[:, 1] * 0.7
+    x, y = points[:, 0], points[:, 1]
     fig, ax = plt.subplots(figsize=(4.25, 4.25))
     im = ax.tripcolor(x, y, tri, np.abs(perm), shading='flat',
                       edgecolors='k', vmax=2, vmin=0)
@@ -275,16 +283,16 @@ def draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius):
     for i, electrode_center in enumerate(electrode_centers):
         x = electrode_center[0] - electrode_radius
         y = electrode_center[1] - electrode_radius
-        width = 2 * electrode_radius * 0.7
+        width = 2 * electrode_radius
         ax.add_patch(
             patches.Rectangle(
-                (x * 0.7, y * 0.7),  # (x,y)
+                (x, y),  # (x,y)
                 width,  # width
                 width,  # height
                 color='y'
             )
         )
-        ax.annotate(str(i), (x * 0.7, y * 0.7))
+        ax.annotate(str(i), (x, y))
     ax.set_aspect('equal')
 
     _, ax = plt.subplots(figsize=(20, 20))

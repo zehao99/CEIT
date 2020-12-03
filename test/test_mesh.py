@@ -1,8 +1,9 @@
 from unittest import TestCase
-from MyEIT.util.utilities import quicksort, Comp, PointStack
-from MyEIT.models.mesh import MeshObj, ccw
+
 import numpy as np
-import matplotlib.pyplot as plt
+
+from MyEIT.models.mesh import MeshObj, ccw
+from MyEIT.util.utilities import quicksort, Comp, PointStack
 
 
 class Test(TestCase):
@@ -41,3 +42,8 @@ class Test(TestCase):
         for n in ans:
             points_x.append(mesh.nodes[int(n)][0])
             points_y.append(mesh.nodes[int(n)][1])
+
+    def test_mesh_scaling(self):
+        mesh = MeshObj()
+        mesh.scale_mesh(2)
+        Test.assertEqual(self, np.max(mesh.point_x) - np.min(mesh.point_x), 0.8)
