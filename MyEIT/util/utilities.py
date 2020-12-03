@@ -28,6 +28,15 @@ def get_config():
     return config
 
 
+def insert_zero_to_delta_v(data, electrode_num):
+    new_data = []
+    for i, v in enumerate(data):
+        if i % (electrode_num - 1) == 0:
+            new_data.append(0)
+        new_data.append(v)
+    return np.array(new_data)
+
+
 def save_parameter(param, filename, path_name="."):
     """
     Save parameter to .pkl file,
@@ -171,6 +180,7 @@ class Comp:
 
     Takes in two points p1, p2 and compare the relationship between vector p0p1 and p0p2
     """
+
     def __init__(self, p0):
         """
         Initialize the comparator
