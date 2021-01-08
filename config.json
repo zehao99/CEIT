@@ -1,5 +1,5 @@
 {
-    "mesh_filename": "EITmesh.fem",
+    "mesh_filename": "EITMesh.fem",
     "optimize_node_num": false,
     "shuffle_element": false,
     "electrode_centers": [
