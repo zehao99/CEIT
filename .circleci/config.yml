@@ -5,19 +5,11 @@ orbs:
 
 jobs:
   test:
-    parameters:
-      version:
-        type: string
-        default: latest
     docker:
-      - image: circleci/python:<< parameters.version >>
+      - image: circleci/python:3.6.2-stretch-browsers
     steps:
       - checkout
       - run: mkdir test-reports
-      - run: apt-get update && \
-              apt-get install -y openjdk-8-jdk && \
-              apt-get install -y ant && \
-              apt-get clean;
       - run:
           name: Download Selenium
           command: |
