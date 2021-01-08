@@ -1,5 +1,4 @@
 # CEIT
-![logo_image](./img/logo.png)
 
 Python Package for EIT(Electric Impedance Tomography)-like method on detecting capacitance Density Distribution.
 
