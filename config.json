@@ -17,7 +17,7 @@
     "overall_origin_variable": 0,
     "detection_bound": 45,
     "is_first_JAC_calculation": true,
-    "folder_name": "MESH_TEST",
+    "folder_name": "MESH_50_50",
     "calc_from": 0,
     "calc_end": 16,
     "regularization_coeff": 295,
