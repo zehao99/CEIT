@@ -119,7 +119,7 @@ After initializing, in the folder you specified before, the method would generat
 file and a `Mesh_Cache_Element.csv` file.
 
 ```python
-from MyEIT.readmesh import init_mesh
+from CEIT.readmesh import init_mesh
 
 init_mesh(draw=True)
 ```
@@ -136,7 +136,7 @@ The default calculation unit inside CEIT is **SI** units, if your mesh is in **m
 **You need to call `return_mesh()` method to get the mesh object and electrode information.**
 
 ```python
-from MyEIT.readmesh import read_mesh_from_csv
+from CEIT.readmesh import read_mesh_from_csv
 
 read_mesh = read_mesh_from_csv()
 mesh_obj,_,_,_ = read_mesh.return_mesh()
@@ -148,7 +148,7 @@ The forward calculator is used Finite Element Method to calculate potential dist
 
 First instantiate the class after reading the mesh file.
 ```python
-from MyEIT.EFEM import EFEM
+from CEIT.EFEM import EFEM
 
 fwd_model = EFEM()
 ```
@@ -175,7 +175,7 @@ The `EJAC` class provides the function of doing jacobian calculation.
 First instantiate the class, this class doesn't require creating the `EFEM` class, it will initialize it internally.
 However, you have to get the mesh and pass it into the initializer
 ```python
-from MyEIT.EJAC import EJAC
+from CEIT.EJAC import EJAC
 
 jac_calc = EJAC()
 jac_calc.JAC_calculation()
@@ -209,7 +209,7 @@ The `Solver` class provides the function of realtime reconstructing data fed in 
 
 An example
 ```python
-from MyEIT.Solver import Solver
+from CEIT.Solver import Solver
 
 solver = Solver()
 delta_v = np.random.rand(240)
@@ -219,7 +219,7 @@ solver.solve(delta_v)
 If you generated another Jacobian matrix, you can call the function `reinitialize_solver()` contained in the `MyEIT.solver` module to refresh your `inv_mat.npy` file.
 
 ```python
-from MyEIT.Solver import reinitialize_solver
+from CEIT.Solver import reinitialize_solver
 
 reinitialize_solver()
 ```

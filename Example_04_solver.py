@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from MyEIT.EITPlotter import EITPlotter
-from MyEIT.Solver import Solver
+from CEIT.EITPlotter import EITPlotter
+from CEIT.Solver import Solver
 
 solver = Solver()
 plotter = EITPlotter()

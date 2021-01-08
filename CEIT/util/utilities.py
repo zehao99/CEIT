@@ -17,11 +17,14 @@ def get_config():
     """
     path = os.path.dirname(os.path.realpath(__file__))
     path = os.path.dirname(os.path.dirname(path))
-    with open(path + '\\config.json', 'r', encoding='utf-8') as f:
-        config = loads(f.read())
+    try:
+        with open(path + '/' + 'config.json', 'r', encoding='utf-8') as f:
+            config = loads(f.read())
+    except IOError:
+        print("No config.json found in directory, for more information please check: https://github.com/zehao99/CEIT")
     param_unit = config["sensor_param_unit"]
     assert (isinstance(param_unit, str) and (param_unit == "mm" or param_unit == "SI")) or \
-        isinstance(param_unit, float), "Please enter the accurate unit."
+        isinstance(param_unit, float), "Please enter the accurate unit for parameters."
     config["rootdir"] = path
     if param_unit == "mm":
         config["electrode_centers"] = list(np.array(config["electrode_centers"]) / 1000)
@@ -35,6 +38,15 @@ def get_config():
 
 
 def insert_zero_to_delta_v(data, electrode_num):
+    """
+    Change N(N - 1) dimension data to N * N dimension
+    Args:
+        data: data to be transformed
+        electrode_num: electrode number
+
+    Returns:
+        NdArray : transformed data
+    """
     new_data = []
     for i, v in enumerate(data):
         if i % (electrode_num - 1) == 0:
@@ -53,7 +65,7 @@ def save_parameter(param, filename, path_name="."):
         path_name: path name of the destination example:
                     such as path = os.path.dirname(os.path.realpath(__file__))
     """
-    with open(path_name + "\\" + 'cache_' + filename + '.pkl', "wb") as file:
+    with open(path_name + "/" + 'cache_' + filename + '.pkl', "wb") as file:
         pickle.dump(param, file)
 
 
@@ -68,7 +80,7 @@ def read_parameter(filename, path_name):
     Returns:
         data: data in the file
     """
-    with open(path_name + "\\" + 'cache_' + filename + '.pkl', 'rb') as file:
+    with open(path_name + "/" + 'cache_' + filename + '.pkl', 'rb') as file:
         param = pickle.load(file)
     return param
 
@@ -87,7 +99,7 @@ def save_to_csv_file(data, filename, path_name="."):
     data = np.array(data)
     if len(data.shape) > 2:
         raise ValueError("This function can only store two dimension data.")
-    with open(path_name + "\\" + filename, mode='w', newline='') as file:
+    with open(path_name + "/" + filename, mode='w', newline='') as file:
         data_writer = csv.writer(file, delimiter=',')
         if len(data.shape) == 1:
             data_writer.writerow(data)
@@ -96,7 +108,7 @@ def save_to_csv_file(data, filename, path_name="."):
                 data_writer.writerow(line)
 
 
-def read_csv_from_file(filename, path_name="./"):
+def read_csv_from_file(filename, path_name="."):
     """
     Read from .csv file
 
@@ -109,7 +121,7 @@ def read_csv_from_file(filename, path_name="./"):
     """
     data = []
     assert filename.endswith(".csv"), "The filename is not ended with csv."
-    with open(path_name + "\\" + filename, newline='') as file:
+    with open(path_name + "/" + filename, newline='') as file:
         csv_reader = csv.reader(file, delimiter=',')
         for line in csv_reader:
             if line:
@@ -134,7 +146,7 @@ def read_csv_one_line_from_file(filename, path_name=".", idx=0):
     """
     data = []
     assert filename.endswith(".csv"), "The filename is not ended with csv."
-    with open(path_name + "\\" + filename, newline='') as file:
+    with open(path_name + "/" + filename, newline='') as file:
         csv_reader = csv.reader(file, delimiter=',')
         count = 0
         for line in csv_reader:

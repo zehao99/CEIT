@@ -1,6 +1,6 @@
 from unittest import TestCase
-from MyEIT.EJAC import EJAC
-from MyEIT.readmesh import read_mesh_from_csv
+from CEIT.EJAC import EJAC
+from CEIT.readmesh import read_mesh_from_csv
 import os
 
 

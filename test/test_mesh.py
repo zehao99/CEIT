@@ -2,8 +2,8 @@ from unittest import TestCase
 
 import numpy as np
 
-from MyEIT.models.mesh import MeshObj, ccw
-from MyEIT.util.utilities import quicksort, Comp, PointStack
+from CEIT.models.mesh import MeshObj, ccw
+from CEIT.util.utilities import quicksort, Comp, PointStack
 
 
 class Test(TestCase):
@@ -45,5 +45,9 @@ class Test(TestCase):
 
     def test_mesh_scaling(self):
         mesh = MeshObj()
+        original_diff = np.max(mesh.point_x) - np.min(mesh.point_x)
         mesh.scale_mesh(2)
-        Test.assertEqual(self, np.max(mesh.point_x) - np.min(mesh.point_x), 0.8)
+        Test.assertEqual(self, np.max(mesh.point_x) - np.min(mesh.point_x), original_diff * 2)
+        original_diff = np.max(mesh.point_x) - np.min(mesh.point_x)
+        mesh.scale_mesh(0.2)
+        Test.assertEqual(self, np.max(mesh.point_x) - np.min(mesh.point_x), original_diff * 0.2)

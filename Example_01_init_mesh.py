@@ -1,3 +1,3 @@
-from MyEIT.readmesh import init_mesh
+from CEIT.readmesh import init_mesh
 
 init_mesh(True)

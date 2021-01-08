@@ -254,14 +254,6 @@ class FEMBasic(metaclass=ABCMeta):
         """
         self.elem_variable = np.zeros(np.shape(self.mesh.elem_perm)) + overall_variable
 
-    def reset_variable_to_initial(self, variable_value):
-        """
-        DEPRECATED
-        Set initial distribution of variable density value
-        """
-        self.elem_variable = np.zeros(np.shape(self.mesh.elem_perm))
-        self.change_variable_geometry([0, 0], 15, variable_value, shape="square")
-
     def change_conductivity(self, element_list, resistance_list):
         """
         Change conductivity in certain area according to ELEMENT NUMBER
@@ -270,13 +262,7 @@ class FEMBasic(metaclass=ABCMeta):
             element_list: INT LIST element numbers to be changed
             resistance_list: FLOAT LIST same dimension list for conductivity on each element included
         """
-        if len(element_list) == len(resistance_list):
-            for i, ele_num in enumerate(element_list):
-                if ele_num > self.elem_num:
-                    raise Exception("Element number exceeds limit")
-                self.mesh.elem_perm[ele_num] = resistance_list[i]
-        else:
-            raise Exception('The length of element doesn\'t match the length of variable')
+        self.mesh.change_conductivity(element_list, resistance_list)
 
     def plot_map(self, ax, param):
         """

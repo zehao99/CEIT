@@ -47,7 +47,7 @@ class ReadMesh(object):
         self.nodes = []
         self.elements = []
         self.folder_name = folder_name
-        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + filename, newline="") as file:
+        with open(self.config["rootdir"] + "/" + self.config["folder_name"] + "/" + filename, newline="") as file:
             for line in file:
                 if line.find("GRID") != -1 and line.find("$") == -1:
                     x = string_to_float(line[24:32].rstrip())
@@ -170,12 +170,12 @@ class ReadMesh(object):
             return - np.arccos(x / r) + 2 * np.pi
 
     def output(self, file_name='Mesh_Cache'):
-        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + file_name + '_Node.csv', mode='w',
+        with open(self.config["rootdir"] + "/" + self.config["folder_name"] + "/" + file_name + '_Node.csv', mode='w',
                   newline='') as outfile:
             data_writer = csv.writer(outfile, delimiter=',')
             for node in self.nodes:
                 data_writer.writerow(node)
-        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + "\\" + file_name + '_Element.csv',
+        with open(self.config["rootdir"] + "/" + self.config["folder_name"] + "/" + file_name + '_Element.csv',
                   mode='w', newline='') as outfile_2:
             data_writer_2 = csv.writer(outfile_2, delimiter=',')
             for element in self.elements:
@@ -183,9 +183,9 @@ class ReadMesh(object):
 
     def out_2pkl(self, filename='Mesh_'):
         save_parameter(self.nodes, filename + 'nodes',
-                       self.config["rootdir"] + "\\" + self.config["folder_name"])
+                       self.config["rootdir"] + "/" + self.config["folder_name"])
         save_parameter(self.elements, filename + 'elements',
-                       self.config["rootdir"] + "\\" + self.config["folder_name"])
+                       self.config["rootdir"] + "/" + self.config["folder_name"])
 
 
 class read_mesh_from_csv(object):
@@ -202,14 +202,14 @@ class read_mesh_from_csv(object):
         if mode == 'csv':
             self.nodes = []
             self.elements = []
-            with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\' + name + '_Node.csv',
+            with open(self.config["rootdir"] + "/" + self.config["folder_name"] + '/' + name + '_Node.csv',
                       newline='') as datafile:
                 csv_reader = csv.reader(datafile, delimiter=',')
                 for line in csv_reader:
                     if line:
                         line = [float(x) for x in line]
                         self.nodes.append(line)
-            with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\' + name + '_Element.csv',
+            with open(self.config["rootdir"] + "/" + self.config["folder_name"] + '/' + name + '_Element.csv',
                       newline='') as datafile_2:
                 csv_reader_2 = csv.reader(datafile_2, delimiter=',')
                 for line in csv_reader_2:
@@ -227,9 +227,9 @@ class read_mesh_from_csv(object):
 
     def read_from_pkl(self, filename='Mesh_'):
         self.nodes = read_parameter(
-            filename + 'nodes', self.config["rootdir"] + "\\" + self.config["folder_name"])
+            filename + 'nodes', self.config["rootdir"] + "/" + self.config["folder_name"])
         self.elements = read_parameter(
-            filename + 'elements', self.config["rootdir"] + "\\" + self.config["folder_name"])
+            filename + 'elements', self.config["rootdir"] + "/" + self.config["folder_name"])
 
     def return_mesh(self):
         """

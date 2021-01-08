@@ -22,6 +22,6 @@
     "calc_end": 16,
     "regularization_coeff": 295,
     "device": "cpu",
-    "sensor_param_unit": "mm",
-    "mesh_unit": "mm"
+    "sensor_param_unit": 0.001,
+    "mesh_unit": 0.001
 }

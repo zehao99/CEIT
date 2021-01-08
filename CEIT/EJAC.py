@@ -239,15 +239,15 @@ class EJAC(object):
         J = self.eliminate_non_detect_JAC() - 1
         Q = np.eye(J.shape[1])
         JAC_inv = np.dot(np.linalg.inv(np.dot(J.T, J) + lmbda ** 2 * Q), J.T)
-        np.save(self.config["rootdir"] + "\\" +
-                self.config["folder_name"] + '\\inv_mat.npy', JAC_inv)
+        np.save(self.config["rootdir"] + "/" +
+                self.config["folder_name"] + '/inv_mat.npy', JAC_inv)
 
     def read_inv_matrix(self):
         """
         Load inverse matrix from inv_mat.npy
         """
 
-        return np.load(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\inv_mat.npy')
+        return np.load(self.config["rootdir"] + "/" + self.config["folder_name"] + '/inv_mat.npy')
 
     def eit_solve_direct(self, detect_potential):
         """
@@ -262,21 +262,21 @@ class EJAC(object):
         """
         save JAC matrix to JAC_cache.npy
         """
-        np.save(self.config["rootdir"] + "\\" +
-                self.config["folder_name"] + '\\JAC_cache.npy', self.JAC_matrix)
+        np.save(self.config["rootdir"] + "/" +
+                self.config["folder_name"] + '/JAC_cache.npy', self.JAC_matrix)
 
     def read_JAC_np(self):
         """
         read JAC matrix to JAC_cache.npy
         """
         self.JAC_matrix = np.load(
-            self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\JAC_cache.npy')
+            self.config["rootdir"] + "/" + self.config["folder_name"] + '/JAC_cache.npy')
 
     def save_JAC_2file(self):
         """
         Save jacobian matrix to csv file
         """
-        with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\jac_cache.csv', "w", newline='') as csvfile:
+        with open(self.config["rootdir"] + "/" + self.config["folder_name"] + '/jac_cache.csv', "w", newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             for row in self.JAC_matrix:
                 writer.writerow(row)
@@ -286,7 +286,7 @@ class EJAC(object):
         Read jacobian matrix from csv file
         """
         if mode == 'normal':
-            with open(self.config["rootdir"] + "\\" + self.config["folder_name"] + '\\jac_cache.csv', newline='') as csvfile:
+            with open(self.config["rootdir"] + "/" + self.config["folder_name"] + '/jac_cache.csv', newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',')
                 for i, line in enumerate(reader):
                     self.JAC_matrix[i] = line

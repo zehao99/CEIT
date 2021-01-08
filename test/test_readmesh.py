@@ -1,5 +1,5 @@
 from unittest import TestCase
-from MyEIT.readmesh import ReadMesh, init_mesh
+from CEIT.readmesh import ReadMesh, init_mesh
 
 
 class TestReadMesh(TestCase):

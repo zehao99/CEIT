@@ -1,5 +1,5 @@
 from unittest import TestCase
-from MyEIT.Solver import reinitialize_solver
+from CEIT.Solver import reinitialize_solver
 
 class Test(TestCase):
     def test_reinitialize_solver(self):

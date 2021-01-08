@@ -75,9 +75,15 @@ class MeshObj(object):
             self.calc_electrode_elements(i, center, self.electrode_radius)
 
     def scale_mesh(self, scale_factor):
+        """
+        Scale the mesh with the given scale_factor.
+
+        new_length = old_length * scale_factor
+
+        Args:
+            scale_factor: factor used to multiply
+        """
         self.nodes *= scale_factor
-        self.point_x *= scale_factor
-        self.point_y *= scale_factor
         self.electrode_radius *= scale_factor
         self.electrode_center_list = list(np.array(self.electrode_center_list) * scale_factor)
 
@@ -172,6 +178,22 @@ class MeshObj(object):
             return new_list_c
         else:
             raise Exception("Transfer Shape Not Correct")
+
+    def change_conductivity(self, element_list, resistance_list):
+        """
+        Change conductivity in certain area according to ELEMENT NUMBER
+
+         Args:
+            element_list: INT LIST element numbers to be changed
+            resistance_list: FLOAT LIST same dimension list for conductivity on each element included
+        """
+        if len(element_list) == len(resistance_list):
+            for i, ele_num in enumerate(element_list):
+                if ele_num > len(self.elem):
+                    raise Exception("Element number exceeds limit")
+                self.elem_perm[ele_num] = resistance_list[i]
+        else:
+            raise Exception('The length of element doesn\'t match the length of variable')
 
     def get_perimeter(self):
         """

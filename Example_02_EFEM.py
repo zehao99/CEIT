@@ -1,15 +1,15 @@
 import matplotlib.pyplot as plt
-from MyEIT.EFEM import EFEM
-from MyEIT.readmesh import read_mesh_from_csv
-from MyEIT.models.mesh import MeshObj
+from CEIT.EFEM import EFEM
+from CEIT.readmesh import read_mesh_from_csv
+from CEIT.models.mesh import MeshObj
 
 # problem setup
 fwd = EFEM()
 
 obj_x = -20  # object x position
 obj_y = -10  # object y position
-obj_r = 1    # object radius
-c_val = 1e-6    # object variable density val
+obj_r = 10    # object radius
+c_val = 1e-7    # object variable density val
 obj_shape = "square"    # object shape
 
 fwd.change_add_variable_geometry(
