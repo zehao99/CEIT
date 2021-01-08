@@ -9,3 +9,8 @@ venv/
 MESH_TEST/
 *.pyc
 t.py
+build/
+CEIT.egg-info/
+dist/
+.pypirc
+setup.py

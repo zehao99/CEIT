@@ -1,5 +1,4 @@
 from .util.utilities import get_config
-from .readmesh import read_mesh_from_csv
 from .models.mesh import MeshObj
 import numpy as np
 import matplotlib.patches as patches

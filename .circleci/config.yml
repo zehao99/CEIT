@@ -46,6 +46,6 @@ jobs:
           path: test-reports/
 
 workflows:
-  main:
+  build_and_test:
     jobs:
       - test
