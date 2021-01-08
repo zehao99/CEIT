@@ -13,4 +13,3 @@ build/
 CEIT.egg-info/
 dist/
 .pypirc
-setup.py

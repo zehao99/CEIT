@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='CEIT',
-    version='0.0.2',
+    version='0.0.1',
     description='Python Package for EIT(Electric Impedance Tomography)-like problems using Gauss-Newton method.',
     url="https://github.com/zehao99/CEIT",
     author="Li Zehao",

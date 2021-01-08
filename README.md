@@ -7,7 +7,7 @@ Python Package for EIT(Electric Impedance Tomography)-like method on detecting c
 - [CEIT](#ceit)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
-  - [Requirements](#requirements)
+  - [Installment](#installment)
   - [Configure the calculation](#configure-the-calculation)
   - [Quick Start](#quick-start)
   - [Read Mesh Class](#read-mesh-class)
@@ -27,21 +27,27 @@ It can also be used on other "weird" types of EIT-like problem(**different diffe
 
 For more information, please check [my paper](https://ieeexplore.ieee.org/document/9254590).
 
-The `efem.py` module is written only for this problem, other modules can be reused in any other EIT application.
+The `EFEM` class is written only for this problem, other modules can be reused in any other EIT application.
 
 CEIT provides the ability to generate solver for realtime reconstruction.
 Given the meshes and electrode positions, CEIT can generate Inverse model for any planar sensor design.
 
 > **KIND REMINDER**: be sure to config the `.gitignore` file, the `.csv` files generated are pretty large...
 
-## Requirements
+## Installment
 
-See `requirements.txt`, one thing to mention is that to accelerate the calculation process, we used GPU acceleration for matrix multiplication.
-So if you don't have a beefy GPU, then please set the device option in `config.json` to `"cpu"` and do the following things:
+Install through pip or download the code.
 
-> 1. comment out content inside function `calculate_FEM_equation()` at the end of file `./MyEIT/efem.py`.
-> 2. Add a line `pass` to the function.
-> 3. comment out `import cupy as cp` in `./MyEIT/efem.py`.
+```shell
+pip install CEIT
+```
+
+If you download this code, see `requirements.txt`, one thing to mention is that to accelerate the calculation process, you can use GPU acceleration.
+To enable this you have to do the following steps.
+
+> 1. Set the `"device"` option in `config.json` to `"gpu"` 
+> 2. Cancel the comment inside function `calculate_FEM_equation()` at the end of file `./MyEIT/efem.py`.
+> 3. cancel the line of `import cupy as cp` in `./MyEIT/efem.py`.
 
 ```shell
 python -m pip install -r requirements.txt
