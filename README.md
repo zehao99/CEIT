@@ -47,14 +47,11 @@ To enable this you have to do the following steps.
 > 1. Set the `"device"` option in `config.json` to `"gpu"` 
 > 2. Cancel the comment inside function `calculate_FEM_equation()` at the end of file `./MyEIT/efem.py`.
 > 3. cancel the line of `import cupy as cp` in `./MyEIT/efem.py`.
+> 4. Install [`cupy`](https://docs.cupy.dev/en/stable/install.html) package according to your CUDA version, e.g.
+     `
+     python -m pip install cupy-cuda101
+     `, check the installation guide [here](https://docs.cupy.dev/en/stable/install.html#install-cupy).
 
-```shell
-python -m pip install -r requirements.txt
-```
-If you have a decent GPU, install [`cupy`](https://docs.cupy.dev/en/stable/install.html) package according to your CUDA version.
-```shell
-python -m pip install cupy-cuda101
-```
 **Currently this package only work on 2D meshes.**
 
 ## Configure the calculation
@@ -215,6 +212,7 @@ The `Solver` class provides the function of realtime reconstructing data fed in 
 An example
 ```python
 from CEIT.Solver import Solver
+import numpy as np
 
 solver = Solver()
 delta_v = np.random.rand(240)
