@@ -262,7 +262,7 @@ def init_mesh(draw=False):
     return mesh_obj, electrode_num, electrode_centers, electrode_radius
 
 
-def draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius):
+def draw_mesh(mesh_obj):
     """
         Draw the mesh with electrode demonstration
     """
@@ -272,18 +272,17 @@ def draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius):
     plt.rc('xtick', labelsize=12)
     plt.rc('ytick', labelsize=12)
     plt.rc('axes', labelsize=12)
-    points = mesh_obj['node']
-    tri = mesh_obj['element']
-    perm = mesh_obj['perm']
+    points = mesh_obj.nodes
+    tri = mesh_obj.elem
     x, y = points[:, 0], points[:, 1]
     fig, ax = plt.subplots(figsize=(4.25, 4.25))
-    im = ax.tripcolor(x, y, tri, np.abs(perm), shading='flat',
+    im = ax.tripcolor(x, y, tri, np.abs(0.5), shading='flat',
                       edgecolors='k', vmax=2, vmin=0)
     # fig.colorbar(im)
-    for i, electrode_center in enumerate(electrode_centers):
-        x = electrode_center[0] - electrode_radius
-        y = electrode_center[1] - electrode_radius
-        width = 2 * electrode_radius
+    for i, electrode_center in enumerate(mesh_obj.electrode_center_list):
+        x = electrode_center[0] - mesh_obj.electrode_radius
+        y = electrode_center[1] - mesh_obj.electrode_radius
+        width = 2 * mesh_obj.electrode_radius
         ax.add_patch(
             patches.Rectangle(
                 (x, y),  # (x,y)

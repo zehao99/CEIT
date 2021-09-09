@@ -16,6 +16,12 @@ class Simulator:
             self.mesh.electrode_num * (self.mesh.electrode_num - 1))
 
     def calc_potential(self):
+        """
+        Calculate the potential according to the current parameter state.
+
+        Returns: Array of potential amplitudes.
+
+        """
         for i in range(self.mesh.electrode_num):
             cnt = 0
             _, _, electrode_potential = self.fwd_simulator.calculation(i)

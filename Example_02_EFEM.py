@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 from CEIT.EFEM import EFEM
-from CEIT.readmesh import read_mesh_from_csv
-from CEIT.models.mesh import MeshObj
 
 # problem setup
 fwd = EFEM()

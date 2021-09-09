@@ -57,12 +57,12 @@ class EFEM(FEMBasic):
             for i, j in pattern:
                 if i != j:
                     K_ij = self.mesh.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
-                        1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 12) * 1j
+                        4 * param[0]) + (self.freq * self.elem_variable[index] * param[0] / 12) * 1j
                     self.K_sparse[element[i]][element[j]] += K_ij
                     self.K_sparse[element[j]][element[i]] += K_ij
                 else:
                     K_ij = self.mesh.elem_perm[index] * (param[1 + i] * param[1 + j] + param[4 + i] * param[4 + j]) * (
-                        1 * param[0]) - (self.freq * self.elem_variable[index] * param[0] / 6) * 1j
+                        4 * param[0]) + (self.freq * self.elem_variable[index] * param[0] / 6) * 1j
                     self.K_sparse[element[i]][element[j]] += K_ij
                     self.K_sparse[element[j]][element[i]] += K_ij
 

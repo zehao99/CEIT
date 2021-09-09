@@ -11,5 +11,6 @@ MESH_TEST/
 t.py
 build/
 CEIT.egg-info/
+CEIT-*/
 dist/
 .pypirc
