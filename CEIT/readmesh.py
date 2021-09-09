@@ -256,9 +256,10 @@ def init_mesh(draw=False):
     unit_name = config["mesh_unit"]
     read_mesh = ReadMesh(filename, electrode_centers, electrode_radius, unit_name, folder_name, optimize_node_num,
                          shuffle_element)
+    from .models.mesh import MeshObj
     mesh_obj, electrode_num, electrode_centers, electrode_radius = read_mesh.return_mesh()
     if draw:
-        draw_mesh(mesh_obj, electrode_num, electrode_centers, electrode_radius)
+        draw_mesh(MeshObj(mesh_obj, electrode_num, electrode_centers, electrode_radius))
     return mesh_obj, electrode_num, electrode_centers, electrode_radius
 
 
@@ -276,8 +277,7 @@ def draw_mesh(mesh_obj):
     tri = mesh_obj.elem
     x, y = points[:, 0], points[:, 1]
     fig, ax = plt.subplots(figsize=(4.25, 4.25))
-    im = ax.tripcolor(x, y, tri, np.abs(0.5), shading='flat',
-                      edgecolors='k', vmax=2, vmin=0)
+    im = ax.tripcolor(x, y, tri, np.zeros((len(tri),)) + 0.5, shading='flat', edgecolors='k', vmax=2, vmin=0)
     # fig.colorbar(im)
     for i, electrode_center in enumerate(mesh_obj.electrode_center_list):
         x = electrode_center[0] - mesh_obj.electrode_radius
