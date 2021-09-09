@@ -300,7 +300,9 @@ def draw_mesh(mesh_obj):
         ax.text(points[i, 0], points[i, 1], str(i), fontsize=8)
     ax.grid('on')
     ax.set_aspect('equal')
-    plt.show()
+    plt.show(block=False)
+    plt.pause(20)
+    plt.close("all")
 
 
 def demo_mesh():
